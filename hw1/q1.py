@@ -10,6 +10,8 @@ import PIL.ImageOps
 import torch.nn as nn
 import scipy.ndimage as ndimage
 from scipy import spatial
+from sklearn import svm
+
 
 transforms = tv.transforms
 
@@ -222,9 +224,132 @@ def sub7():
     sp.axis('off')
     sp.set_title("Nearest neighbor")
     plt.show()
+    return
 
 
 def sub8():
+    print("==================================")
+    print("Classifying our own tiger and wolf")
+    tiger_o = Image.open('our_images/tiger.jpg')
+    wolf_o = Image.open('our_images/wolf.jpg')
+    tiger = prep_image(tiger_o)
+    wolf = prep_image(wolf_o)
+
+    fig = plt.figure()
+    fig.suptitle("Our tiger and wolf")
+    sp = fig.add_subplot(321)
+    sp.imshow(tiger_o)
+    sp.axis('off')
+    sp.set_title('Original tiger')
+    sp = fig.add_subplot(322)
+    sp.imshow(wolf_o)
+    sp.axis('off')
+    sp.set_title("Original wolf")
+    sp = fig.add_subplot(323)
+    sp.imshow(np.moveaxis(np.squeeze(tiger.data.numpy()), 0, -1))
+    sp.axis('off')
+    sp.set_title("NN ready tiger")
+    sp = fig.add_subplot(324)
+    sp.imshow(np.moveaxis(np.squeeze(wolf.data.numpy()), 0, -1))
+    sp.axis('off')
+    sp.set_title("NN ready wolf")
+
+    cats_dogs = get_images()
+
+    vgg16 = models.vgg16(pretrained=True)
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
+    vgg16.eval()
+
+    features = np.zeros([20, 4096])
+    i = 0
+    for animal, images in cats_dogs.items():
+        # Note: the first animal handled is first animal in the array. This is not safe, but we don't mind
+        for image in images:
+            result = vgg16(image)
+            vector = result.data.numpy()
+            features[i, :] = vector
+            i += 1
+
+    tree = spatial.KDTree(features)
+    tiger_features = vgg16(tiger).data.numpy()
+    dist, pos = tree.query(tiger_features, p=2)  # this is euclidian distance
+    pos = pos[0]
+    print("Image of tiger -")
+    if pos < 10:
+        animal = "cats"
+    else:
+        animal = "dogs"
+    pos = pos % 10
+    print("Closest to " + str(animal) + " at " + str(pos))
+
+    sp = fig.add_subplot(325)
+    n_image = (cats_dogs[animal])[pos]
+    sp.imshow(np.moveaxis(np.squeeze(n_image.data.numpy()), 0, -1))
+    sp.set_title("Nearest neighbor")
+    sp.axis('off')
+
+    wolf_features = vgg16(wolf).data.numpy()
+    dist, pos = tree.query(wolf_features, p=2)
+    pos = pos[0]
+    print("Image of wolf -")
+    if pos < 10:
+        animal = "cats"
+    else:
+        animal = "dogs"
+    pos = pos % 10
+    print("Closest to " + str(animal) + " at " + str(pos))
+
+    sp = fig.add_subplot(326)
+    n_image = (cats_dogs[animal])[pos]
+    sp.imshow(np.moveaxis(np.squeeze(n_image.data.numpy()), 0, -1))
+    sp.axis('off')
+    sp.set_title("Nearest neighbor")
+    plt.show()
+    return
+
+
+def sub9():
+    print("===========================")
+    print("Building our own classifier")
+
+    cats_dogs = get_images()
+    vgg16 = models.vgg16(pretrained=True)
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
+    vgg16.eval()
+
+    svm_classifier = svm.SVC()
+
+    features = np.zeros([20, 4096])
+    tags = np.zeros([20])
+    i = 0
+    tag = 0  # 0 is cat, 1 is dog
+    for animal, images in cats_dogs.items():
+        # Note: the first animal handled is first animal in the array. This is not safe, but we don't mind
+        for image in images:
+            result = vgg16(image)
+            vector = result.data.numpy()
+            features[i, :] = vector
+            tags[i] = tag
+            i += 1
+        tag += 1  # update the tag
+
+    print(tags)
+    # Train SVM
+    svm_classifier.fit(features, tags)
+
+    # Obtain features
+    cat_o = Image.open('our_images/cat.jpg')
+    dog_o = Image.open('our_images/dog.jpg')
+    cat = prep_image(cat_o)
+    dog = prep_image(dog_o)
+    cat_features = vgg16(cat).data.numpy()
+    dog_features = vgg16(dog).data.numpy()
+
+    # Classify two images
+    result = svm_classifier.predict(cat_features)
+    print(result)
+    result = svm_classifier.predict(dog_features)
+    print(result)
     return
 
 
@@ -272,4 +397,6 @@ if __name__ == "__main__":
     # sub4()
     # sub5()
     # sub6()
-    sub7()
+    # sub7()
+    # sub8()
+    sub9()
