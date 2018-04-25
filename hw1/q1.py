@@ -22,11 +22,35 @@ def sub2():
     print("Running sub2: Bird classification")
     vgg16 = models.vgg16(pretrained=True)
     vgg16.eval()
-    # image = cv.imread('birds/bird_0.jpg')
-    #TODO: Handle both images
-    image = Image.open('birds/bird_1.jpg')
-    image = prep_image(image)
-    classify(vgg16, image)
+    bird_0_o = Image.open('birds/bird_0.jpg')
+    bird_0 = prep_image(bird_0_o)
+    bird_1_o = Image.open('birds/bird_1.jpg')
+    bird_1 = prep_image(bird_1_o)
+
+    bird_0_class, _ = classify(vgg16, bird_0)
+    bird_1_class, _ = classify(vgg16, bird_1)
+
+    fig = plt.figure()
+    plt.suptitle("sub2 - Bird classification")
+    sb = fig.add_subplot(221)
+    sb.imshow(bird_0_o)
+    sb.axis('off')
+    sb.set_title("Original bird_0")
+    sb = fig.add_subplot(222)
+    sb.imshow(bird_1_o)
+    sb.axis('off')
+    sb.set_title("Original bird_1")
+
+    sb = fig.add_subplot(223)
+    sb.imshow(np.moveaxis(np.squeeze(bird_0.data.numpy()), 0, -1))
+    sb.axis('off')
+    sb.set_title("bird 0 - class == " + str(bird_0_class))
+    sb = fig.add_subplot(224)
+    sb.imshow(np.moveaxis(np.squeeze(bird_1.data.numpy()), 0, -1))
+    sb.axis('off')
+    sb.set_title("bird 1 - class == " + str(bird_1_class))
+    plt.show()
+    return
 
 
 # Load our image (ice cream) and classify it
@@ -35,9 +59,23 @@ def sub3():
     print("Running sub3: Ice-Cream classification")
     vgg16 = models.vgg16(pretrained=True)
     vgg16.eval()
-    image = Image.open('our_images/ice_cream.jpg')
-    image = prep_image(image)
-    classify(vgg16, image)
+    image_o = Image.open('our_images/ice_cream.jpg')
+    image = prep_image(image_o)
+    classification, _ = classify(vgg16, image)
+
+    fig = plt.figure()
+    plt.suptitle("sub3 - Ice-Cream classification")
+    sb = fig.add_subplot(211)
+    sb.set_title("Original image")
+    sb.axis('off')
+    sb.imshow(image_o)
+
+    sb = fig.add_subplot(212)
+    sb.imshow(np.moveaxis(np.squeeze(image.data.numpy()), 0, -1))
+    sb.set_title("NN ready image - classified as: " + str(classification))
+    sb.axis('off')
+    plt.show()
+    return
 
 
 # Perform transformations and classify our image
@@ -48,20 +86,39 @@ def sub4():
     vgg16.eval()
 
     image = Image.open('our_images/ice_cream.jpg')
+
+    fig = plt.figure()
+    plt.suptitle("sub4 - Classification under transformations")
+
     print("---Filtered Image---")
-    image_filt = image.filter(ImageFilter.BLUR)
-    image_filt = prep_image(image_filt)
-    classify(vgg16, image_filt)
+    image_filt_o = image.filter(ImageFilter.BLUR)
+    image_filt = prep_image(image_filt_o)
+    classification, _ = classify(vgg16, image_filt)
+    sb = fig.add_subplot(311)
+    sb.imshow(image_filt_o)
+    sb.axis('off')
+    sb.set_title("Blurred image - classified as: " + str(classification))
 
     print("---Different color Image---")
-    image_color = PIL.ImageOps.invert(image)
-    image_color = prep_image(image_color)
-    classify(vgg16, image_color)
+    image_color_o = PIL.ImageOps.invert(image)
+    image_color = prep_image(image_color_o)
+    classification, _ = classify(vgg16, image_color)
+    sb = fig.add_subplot(312)
+    sb.imshow(image_color_o)
+    sb.axis('off')
+    sb.set_title("Inverted color image - classified as: " + str(classification))
 
     print("---Geometric transform Image---")
-    image_geo = image.rotate(45)
-    image_geo = prep_image(image_geo )
-    classify(vgg16, image_geo)
+    image_geo_o = image.rotate(45)
+    image_geo = prep_image(image_geo_o)
+    classification, _ = classify(vgg16, image_geo)
+    sb = fig.add_subplot(313)
+    sb.imshow(image_geo_o)
+    sb.axis('off')
+    sb.set_title("45deg. rotated image - classified as: " + str(classification))
+
+    plt.show()
+    return
 
 
 def sub5():
@@ -140,7 +197,9 @@ def sub6():
             xx = range(1, np.size(vector)+1)
             plt.scatter(xx, vector, s=0.1, c=colors[it])
         it += 1
+    plt.suptitle("sub6 - Feature vectors extracted from FC7")
     plt.show()
+    return
 
 
 def sub7():
@@ -169,7 +228,6 @@ def sub7():
     sp.imshow(np.moveaxis(np.squeeze(dog.data.numpy()), 0, -1))
     sp.axis('off')
     sp.set_title("NN ready dog")
-    #plt.show()
 
     cats_dogs = get_images()
 
@@ -394,7 +452,8 @@ def prep_image(image):
 def classify(model, image):
     result = model(image)
     net_out = result.data.numpy()
-    print(str(np.argmax(net_out)) + " " + str(np.max(net_out)))
+    # print(str(np.argmax(net_out)) + " " + str(np.max(net_out)))
+    return np.argmax(net_out), np.max(net_out)
 
 
 # Returns a dict with all cat images under cats, and dog images under dogs
@@ -420,8 +479,8 @@ if __name__ == "__main__":
     # sub3()
     # sub4()
     # sub5()
-    # sub6()
+    sub6()
     # sub7()
     # sub8()
-    sub9_svm = sub9()
-    sub10(sub9_svm)
+    # sub9_svm = sub9()
+    # sub10(sub9_svm)  # don't run without sub9
