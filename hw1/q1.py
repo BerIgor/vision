@@ -18,7 +18,7 @@ transforms = tv.transforms
 
 # Load the birds images and classify them
 def sub2():
-    print("=================================")
+    print("=============sub2================")
     print("Running sub2: Bird classification")
     vgg16 = models.vgg16(pretrained=True)
     vgg16.eval()
@@ -31,7 +31,7 @@ def sub2():
 
 # Load our image (ice cream) and classify it
 def sub3():
-    print("======================================")
+    print("===============sub3===================")
     print("Running sub3: Ice-Cream classification")
     vgg16 = models.vgg16(pretrained=True)
     vgg16.eval()
@@ -42,7 +42,7 @@ def sub3():
 
 # Perform transformations and classify our image
 def sub4():
-    print("==================================================")
+    print("=================sub4=============================")
     print("Running sub4: Transformed Ice-Cream classification")
     vgg16 = models.vgg16(pretrained=True)
     vgg16.eval()
@@ -65,7 +65,7 @@ def sub4():
 
 
 def sub5():
-    print("================")
+    print("=====sub5=======")
     print("Accessing layers")
     vgg16 = models.vgg16(pretrained=True)
     for child in vgg16.children():
@@ -120,7 +120,7 @@ def sub5():
 
 
 def sub6():
-    print("===================================================")
+    print("=======================sub6========================")
     print("Accessing features at FC7 (It's fucking FC2, not 7)")
 
     cats_dogs = get_images()
@@ -144,7 +144,7 @@ def sub6():
 
 
 def sub7():
-    print("===============================")
+    print("=============sub7==============")
     print("Classifying our own cat and dog")
     cat_o = Image.open('our_images/cat.jpg')
     dog_o = Image.open('our_images/dog.jpg')
@@ -228,7 +228,7 @@ def sub7():
 
 
 def sub8():
-    print("==================================")
+    print("==============sub8================")
     print("Classifying our own tiger and wolf")
     tiger_o = Image.open('our_images/tiger.jpg')
     wolf_o = Image.open('our_images/wolf.jpg')
@@ -308,8 +308,9 @@ def sub8():
     return
 
 
+# Returns the SVM classifier created created in this function
 def sub9():
-    print("===========================")
+    print("===========sub9============")
     print("Building our own classifier")
 
     cats_dogs = get_images()
@@ -333,7 +334,6 @@ def sub9():
             i += 1
         tag += 1  # update the tag
 
-    print(tags)
     # Train SVM
     svm_classifier.fit(features, tags)
 
@@ -347,9 +347,33 @@ def sub9():
 
     # Classify two images
     result = svm_classifier.predict(cat_features)
-    print(result)
+    print("Cat classified as: " + str(result))
     result = svm_classifier.predict(dog_features)
-    print(result)
+    print("Dog classified as: " + str(result))
+    print("Legend: 0-cat, 1-dog")
+    return svm_classifier
+
+
+def sub10(classifier):
+    print("==================sub10=====================")
+    print("Classifying our own tiger and wolf using SVM")
+    tiger_o = Image.open('our_images/tiger.jpg')
+    wolf_o = Image.open('our_images/wolf.jpg')
+    tiger = prep_image(tiger_o)
+    wolf = prep_image(wolf_o)
+
+    vgg16 = models.vgg16(pretrained=True)
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
+    vgg16.eval()
+
+    tiger_features = vgg16(tiger).data.numpy()
+    result = classifier.predict(tiger_features)
+    print("Tiger classified as: " + str(result))
+
+    wolf_features = vgg16(wolf).data.numpy()
+    result = classifier.predict(wolf_features)
+    print("Wolf classified as: " + str(result))
+    print("Legend: 0-cat, 1-dog")
     return
 
 
@@ -399,4 +423,5 @@ if __name__ == "__main__":
     # sub6()
     # sub7()
     # sub8()
-    sub9()
+    sub9_svm = sub9()
+    sub10(sub9_svm)
