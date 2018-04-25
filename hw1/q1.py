@@ -183,20 +183,16 @@ def sub6():
     cats_dogs = get_images()
 
     vgg16 = models.vgg16(pretrained=True)
-    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-3])
     vgg16.eval()
 
-    our_l = list(vgg16.features.children())[:-1]
-    print("" + str(len(our_l)))
-
     it = 0
-    colors = ["#FF0000", 	"#800000"]
+    colors = ["#FF0000", "#000000"]
 
     for animal, images in cats_dogs.items():
         for image in images:
             result = vgg16(image)
             vector = np.squeeze(result.data.numpy())
-            vector = [float('nan') if n < 1 else n for n in vector]
             xx = range(1, np.size(vector)+1)
             plt.scatter(xx, vector, s=0.1, c=colors[it])
         it += 1
@@ -235,7 +231,7 @@ def sub7():
     cats_dogs = get_images()
 
     vgg16 = models.vgg16(pretrained=True)
-    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-3])
     vgg16.eval()
 
     features = np.zeros([20, 4096])
@@ -318,7 +314,7 @@ def sub8():
     cats_dogs = get_images()
 
     vgg16 = models.vgg16(pretrained=True)
-    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-3])
     vgg16.eval()
 
     features = np.zeros([20, 4096])
@@ -376,7 +372,7 @@ def sub9():
 
     cats_dogs = get_images()
     vgg16 = models.vgg16(pretrained=True)
-    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-3])
     vgg16.eval()
 
     svm_classifier = svm.SVC()
@@ -424,7 +420,7 @@ def sub10(classifier):
     wolf = prep_image(wolf_o)
 
     vgg16 = models.vgg16(pretrained=True)
-    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-3])
     vgg16.eval()
 
     tiger_features = vgg16(tiger).data.numpy()
