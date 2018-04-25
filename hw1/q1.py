@@ -119,19 +119,32 @@ def sub5():
 def sub6():
     print("===================================================")
     print("Accessing features at FC7 (It's fucking FC2, not 7)")
+
+    cats_dogs = get_list()
+
     vgg16 = models.vgg16(pretrained=True)
     vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
     vgg16.eval()
 
-    ice_cream = Image.open('dogs/dog_0.jpg')
-    ice_cream = prep_image(ice_cream)
-    result = vgg16(ice_cream)
-    #print(result.numpy())
+    it = 0
+    colors = ["#FF0000", 	"#800000"]
+    formats = ["r^-", "bx--"]
 
-    #plt.figure()
-    vector = np.squeeze(result.data.numpy())
-    xx = range(1, np.size(vector)+1)
-    plt.scatter(xx, vector, s=0.1)
+    for animal in cats_dogs:
+        for member in animal:
+            result = vgg16(member)
+            vector = np.squeeze(result.data.numpy())
+            # vector = ["None" if n < 1 else n for n in vector]
+            # vector = vector.astype(np.double)
+            vector = [float('nan') if n < 1 else n for n in vector]
+            mask = np.isfinite(vector)
+            # print(mask)
+            # print(vector)
+            xx = range(1, np.size(vector)+1)
+            plt.scatter(xx, vector, s=0.1, c=colors[it])
+            # plt.plot(xx[mask], vector[mask], formats[it])
+        it += 1
+
     plt.show()
 
     # print(result)
@@ -155,6 +168,21 @@ def classify(model, image):
     result = model(image)
     net_out = result.data.numpy()
     print(str(np.argmax(net_out)) + " " + str(np.max(net_out)))
+
+
+# Used by sub6 to retrieve and prepare images of cats and dogs
+def get_list():
+    cats_dogs = list()
+    cats = list()
+    dogs = list()
+    for i in range(10):
+        dog = prep_image(Image.open("dogs\dog_" + str(i) + ".jpg"))
+        cat = prep_image(Image.open("cats\cat_" + str(i) + ".jpg"))
+        dogs.append(dog)
+        cats.append(cat)
+    cats_dogs.append(cats)
+    cats_dogs.append(dogs)
+    return cats_dogs
 
 
 if __name__ == "__main__":
