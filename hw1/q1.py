@@ -151,23 +151,23 @@ def sub7():
 
     fig = plt.figure()
     fig.suptitle("Our cat and dog")
-    sp = fig.add_subplot(221)
+    sp = fig.add_subplot(321)
     sp.imshow(cat_o)
     sp.axis('off')
     sp.set_title('Original cat')
-    sp = fig.add_subplot(222)
+    sp = fig.add_subplot(322)
     sp.imshow(dog_o)
     sp.axis('off')
     sp.set_title("Original dog")
-    sp = fig.add_subplot(223)
+    sp = fig.add_subplot(323)
     sp.imshow(np.moveaxis(np.squeeze(cat.data.numpy()), 0, -1))
     sp.axis('off')
     sp.set_title("NN ready cat")
-    sp = fig.add_subplot(224)
+    sp = fig.add_subplot(324)
     sp.imshow(np.moveaxis(np.squeeze(dog.data.numpy()), 0, -1))
     sp.axis('off')
     sp.set_title("NN ready dog")
-    plt.show()
+    #plt.show()
 
     cats_dogs = get_images()
 
@@ -187,19 +187,45 @@ def sub7():
 
     tree = spatial.KDTree(features)
     cat_features = vgg16(cat).data.numpy()
-    dist, pos = tree.query(cat_features)
+    dist, pos = tree.query(cat_features, p=2)  # this is euclidian distance
+    pos = pos[0]
     print("Image of cat -")
     if pos < 10:
-        print("is a cat")
+        animal = "cats"
     else:
-        print("is a dog")
+        animal = "dogs"
+    pos = pos % 10
+
+    print("Closest to " + str(animal) + " at " + str(pos))
+
+    sp = fig.add_subplot(325)
+    n_image = (cats_dogs[animal])[pos]
+    sp.imshow(np.moveaxis(np.squeeze(n_image.data.numpy()), 0, -1))
+    sp.set_title("Nearest neighbor")
+    sp.axis('off')
+
     dog_features = vgg16(dog).data.numpy()
-    dist, pos = tree.query(dog_features)
+    dist, pos = tree.query(dog_features, p=2)
+    pos = pos[0]
     print("Image of dog -")
     if pos < 10:
-        print("is a cat")
+        animal = "cats"
     else:
-        print("is a dog")
+        animal = "dogs"
+    pos = pos % 10
+
+    print("Closest to " + str(animal) + " at " + str(pos))
+
+    sp = fig.add_subplot(326)
+    n_image = (cats_dogs[animal])[pos]
+    sp.imshow(np.moveaxis(np.squeeze(n_image.data.numpy()), 0, -1))
+    sp.axis('off')
+    sp.set_title("Nearest neighbor")
+    plt.show()
+
+
+def sub8():
+    return
 
 
 def prep_image(image):
