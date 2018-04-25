@@ -9,6 +9,7 @@ from PIL import ImageFilter
 import PIL.ImageOps
 import torch.nn as nn
 import scipy.ndimage as ndimage
+from scipy import spatial
 
 transforms = tv.transforms
 
@@ -32,7 +33,7 @@ def sub3():
     print("Running sub3: Ice-Cream classification")
     vgg16 = models.vgg16(pretrained=True)
     vgg16.eval()
-    image = Image.open('ice_cream.jpg')
+    image = Image.open('our_images/ice_cream.jpg')
     image = prep_image(image)
     classify(vgg16, image)
 
@@ -44,7 +45,7 @@ def sub4():
     vgg16 = models.vgg16(pretrained=True)
     vgg16.eval()
 
-    image = Image.open('ice_cream.jpg')
+    image = Image.open('our_images/ice_cream.jpg')
     print("---Filtered Image---")
     image_filt = image.filter(ImageFilter.BLUR)
     image_filt = prep_image(image_filt)
@@ -85,7 +86,7 @@ def sub5():
     plt.waitforbuttonpress()
 
     # Prepare images
-    ice_cream = Image.open('ice_cream.jpg')
+    ice_cream = Image.open('our_images/ice_cream.jpg')
     image_filt = ice_cream.filter(ImageFilter.BLUR)
     image_filt = prep_image(image_filt)
     image_filt = np.moveaxis(np.squeeze(image_filt.data.numpy()), 0, -1)
@@ -120,7 +121,7 @@ def sub6():
     print("===================================================")
     print("Accessing features at FC7 (It's fucking FC2, not 7)")
 
-    cats_dogs = get_list()
+    cats_dogs = get_images()
 
     vgg16 = models.vgg16(pretrained=True)
     vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
@@ -128,26 +129,77 @@ def sub6():
 
     it = 0
     colors = ["#FF0000", 	"#800000"]
-    formats = ["r^-", "bx--"]
 
-    for animal in cats_dogs:
-        for member in animal:
-            result = vgg16(member)
+    for animal, images in cats_dogs.items():
+        for image in images:
+            result = vgg16(image)
             vector = np.squeeze(result.data.numpy())
-            # vector = ["None" if n < 1 else n for n in vector]
-            # vector = vector.astype(np.double)
             vector = [float('nan') if n < 1 else n for n in vector]
-            mask = np.isfinite(vector)
-            # print(mask)
-            # print(vector)
             xx = range(1, np.size(vector)+1)
             plt.scatter(xx, vector, s=0.1, c=colors[it])
-            # plt.plot(xx[mask], vector[mask], formats[it])
         it += 1
-
     plt.show()
 
-    # print(result)
+
+def sub7():
+    print("===============================")
+    print("Classifying our own cat and dog")
+    cat_o = Image.open('our_images/cat.jpg')
+    dog_o = Image.open('our_images/dog.jpg')
+    cat = prep_image(cat_o)
+    dog = prep_image(dog_o)
+
+    fig = plt.figure()
+    fig.suptitle("Our cat and dog")
+    sp = fig.add_subplot(221)
+    sp.imshow(cat_o)
+    sp.axis('off')
+    sp.set_title('Original cat')
+    sp = fig.add_subplot(222)
+    sp.imshow(dog_o)
+    sp.axis('off')
+    sp.set_title("Original dog")
+    sp = fig.add_subplot(223)
+    sp.imshow(np.moveaxis(np.squeeze(cat.data.numpy()), 0, -1))
+    sp.axis('off')
+    sp.set_title("NN ready cat")
+    sp = fig.add_subplot(224)
+    sp.imshow(np.moveaxis(np.squeeze(dog.data.numpy()), 0, -1))
+    sp.axis('off')
+    sp.set_title("NN ready dog")
+    plt.show()
+
+    cats_dogs = get_images()
+
+    vgg16 = models.vgg16(pretrained=True)
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
+    vgg16.eval()
+
+    features = np.zeros([20, 4096])
+    i = 0
+    for animal, images in cats_dogs.items():
+        # Note: the first animal handled is first animal in the array. This is not safe, but we don't mind
+        for image in images:
+            result = vgg16(image)
+            vector = result.data.numpy()
+            features[i, :] = vector
+            i += 1
+
+    tree = spatial.KDTree(features)
+    cat_features = vgg16(cat).data.numpy()
+    dist, pos = tree.query(cat_features)
+    print("Image of cat -")
+    if pos < 10:
+        print("is a cat")
+    else:
+        print("is a dog")
+    dog_features = vgg16(dog).data.numpy()
+    dist, pos = tree.query(dog_features)
+    print("Image of dog -")
+    if pos < 10:
+        print("is a cat")
+    else:
+        print("is a dog")
 
 
 def prep_image(image):
@@ -170,9 +222,10 @@ def classify(model, image):
     print(str(np.argmax(net_out)) + " " + str(np.max(net_out)))
 
 
-# Used by sub6 to retrieve and prepare images of cats and dogs
-def get_list():
-    cats_dogs = list()
+# Returns a dict with all cat images under cats, and dog images under dogs
+def get_images():
+    # cats_dogs = list()
+    cats_dogs = dict()
     cats = list()
     dogs = list()
     for i in range(10):
@@ -180,8 +233,10 @@ def get_list():
         cat = prep_image(Image.open("cats\cat_" + str(i) + ".jpg"))
         dogs.append(dog)
         cats.append(cat)
-    cats_dogs.append(cats)
-    cats_dogs.append(dogs)
+    # cats_dogs.append(cats)
+    # cats_dogs.append(dogs)
+    cats_dogs["cats"] = cats
+    cats_dogs["dogs"] = dogs
     return cats_dogs
 
 
@@ -190,4 +245,5 @@ if __name__ == "__main__":
     # sub3()
     # sub4()
     # sub5()
-    sub6()
+    # sub6()
+    sub7()
