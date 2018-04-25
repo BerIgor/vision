@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/q1.py" description="result = vgg16(ice_cream)" line="127" />
-  </component>
   <component name="ChangeListManager">
     <list default="true" id="9ffbc3f8-1848-4020-9722-4f1fd4427516" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -15,13 +12,10 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file leaf-file-name="q1.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/q1.py">
+        <entry file="file://$PROJECT_DIR$/hw1/q1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="616">
-              <caret line="28" column="44" lean-forward="true" selection-start-line="28" selection-start-column="44" selection-end-line="28" selection-end-column="44" />
-              <folding>
-                <element signature="e#0#24#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="198">
+              <caret line="9" column="21" lean-forward="true" selection-start-line="9" selection-start-column="21" selection-end-line="9" selection-end-column="21" />
             </state>
           </provider>
         </entry>
@@ -67,8 +61,13 @@
         <subPane>
           <expand>
             <path>
-              <item name="vision1" type="b2602c69:ProjectViewProjectNode" />
-              <item name="vision1" type="462c0819:PsiDirectoryNode" />
+              <item name="vision" type="b2602c69:ProjectViewProjectNode" />
+              <item name="vision" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="vision" type="b2602c69:ProjectViewProjectNode" />
+              <item name="vision" type="462c0819:PsiDirectoryNode" />
+              <item name="hw1" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -92,7 +91,25 @@
       </list>
     </option>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.q1 (1)">
+    <configuration name="q1 (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="hw1_pc" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/hw1" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/hw1/q1.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
     <configuration name="q1" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="hw1_pc" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -111,8 +128,13 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
+    <list>
+      <item itemvalue="Python.q1" />
+      <item itemvalue="Python.q1 (1)" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.q1 (1)" />
         <item itemvalue="Python.q1" />
       </list>
     </recent_temporary>
@@ -137,7 +159,7 @@
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15640327" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.50027245" side_tool="true" weight="0.41182467" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49972752" weight="0.41182467" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49972752" visible="true" weight="0.41182467" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -246,11 +268,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/q1.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="616">
-          <caret line="28" column="44" lean-forward="true" selection-start-line="28" selection-start-column="44" selection-end-line="28" selection-end-column="44" />
+        <state relative-caret-position="242">
+          <caret line="11" lean-forward="true" selection-start-line="11" selection-end-line="11" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hw1/q1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="9" column="21" lean-forward="true" selection-start-line="9" selection-start-column="21" selection-end-line="9" selection-end-column="21" />
         </state>
       </provider>
     </entry>
