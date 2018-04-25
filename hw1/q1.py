@@ -127,22 +127,19 @@ def sub5():
     vgg16 = models.vgg16(pretrained=True)
     for child in vgg16.children():
         layer = child[0]
-        print(layer)
         break
     layer_np = layer.weight.data.numpy()
     filters = layer_np[0:2, :, :, :]
 
     fig = plt.figure()
-    plt.title('1st Conv. layer filters')
+    plt.suptitle('sub5 - 1st Conv. layer filters')
     plt.axis('off')
     for i in range(2):
         filter_3d = filters[i, :, :, :]
-        print(filter_3d)
         sb = fig.add_subplot(1, 2, i+1)
         sb.axis('off')
         sb.imshow(filter_3d)
-    fig.show()
-    plt.waitforbuttonpress()
+    plt.show()
 
     # Prepare images
     ice_cream = Image.open('our_images/ice_cream.jpg')
@@ -158,21 +155,18 @@ def sub5():
     image_list = list([image_filt, image_color, image_geo])
 
     fig2 = plt.figure()
-    plt.title('1st Conv. layer response')
+    plt.suptitle('sub5 - 1st Conv. layer response')
     plt.axis('off')
     subplot = 1
     for j in range(3):
         image = image_list[j]
         for i in range(2):
             response = ndimage.convolve(image, filters[i, :, :, :])
-            print(str(i+j+1))
             sb = fig2.add_subplot(3, 2, subplot)
             sb.axis('off')
             sb.imshow(response)
             subplot += 1
-
-    fig2.show()
-    plt.waitforbuttonpress()
+    plt.show()
     return
 
 
@@ -246,7 +240,7 @@ def sub7():
 
     tree = spatial.KDTree(features)
     cat_features = vgg16(cat).data.numpy()
-    dist, pos = tree.query(cat_features, p=2)  # this is euclidian distance
+    dist, pos = tree.query(cat_features, p=2)  # this is euclidean distance
     pos = pos[0]
     print("Image of cat -")
     if pos < 10:
@@ -366,13 +360,14 @@ def sub8():
 
 
 # Returns the SVM classifier created created in this function
+# In this we cut off the network after the ReLU at FC7, because otherwise our tiger is a dog
 def sub9():
     print("===========sub9============")
     print("Building our own classifier")
 
     cats_dogs = get_images()
     vgg16 = models.vgg16(pretrained=True)
-    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-3])
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
     vgg16.eval()
 
     svm_classifier = svm.SVC()
@@ -390,7 +385,6 @@ def sub9():
             tags[i] = tag
             i += 1
         tag += 1  # update the tag
-
     # Train SVM
     svm_classifier.fit(features, tags)
 
@@ -420,7 +414,7 @@ def sub10(classifier):
     wolf = prep_image(wolf_o)
 
     vgg16 = models.vgg16(pretrained=True)
-    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-3])
+    vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
     vgg16.eval()
 
     tiger_features = vgg16(tiger).data.numpy()
@@ -474,12 +468,12 @@ def get_images():
 
 
 if __name__ == "__main__":
-    # sub2()
-    # sub3()
-    # sub4()
-    # sub5()
+    sub2()
+    sub3()
+    sub4()
+    sub5()
     sub6()
-    # sub7()
-    # sub8()
-    # sub9_svm = sub9()
-    # sub10(sub9_svm)  # don't run without sub9
+    sub7()
+    sub8()
+    sub9_svm = sub9()
+    sub10(sub9_svm)  # don't run without sub9
