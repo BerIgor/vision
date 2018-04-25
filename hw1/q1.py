@@ -177,14 +177,17 @@ def sub5():
 
 
 def sub6():
-    print("=======================sub6========================")
-    print("Accessing features at FC7 (It's fucking FC2, not 7)")
+    print("==========sub6===========")
+    print("Accessing features at FC7")
 
     cats_dogs = get_images()
 
     vgg16 = models.vgg16(pretrained=True)
     vgg16.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
     vgg16.eval()
+
+    our_l = list(vgg16.features.children())[:-1]
+    print("" + str(len(our_l)))
 
     it = 0
     colors = ["#FF0000", 	"#800000"]
