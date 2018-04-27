@@ -1,6 +1,5 @@
 import torchvision as tv
 import matplotlib.pyplot as plt
-import cv2 as cv
 import torchvision.models as models
 import numpy as np
 from PIL import Image
@@ -44,11 +43,11 @@ def sub2():
     sb = fig.add_subplot(223)
     sb.imshow(np.moveaxis(np.squeeze(bird_0.data.numpy()), 0, -1))
     sb.axis('off')
-    sb.set_title("bird 0 - class == " + str(bird_0_class))
+    sb.set_title("bird_0 - class == " + str(bird_0_class))
     sb = fig.add_subplot(224)
     sb.imshow(np.moveaxis(np.squeeze(bird_1.data.numpy()), 0, -1))
     sb.axis('off')
-    sb.set_title("bird 1 - class == " + str(bird_1_class))
+    sb.set_title("bird_1 - class == " + str(bird_1_class))
     plt.show()
     return
 
@@ -65,12 +64,12 @@ def sub3():
 
     fig = plt.figure()
     plt.suptitle("sub3 - Ice-Cream classification")
-    sb = fig.add_subplot(211)
+    sb = fig.add_subplot(121)
     sb.set_title("Original image")
     sb.axis('off')
     sb.imshow(image_o)
 
-    sb = fig.add_subplot(212)
+    sb = fig.add_subplot(122)
     sb.imshow(np.moveaxis(np.squeeze(image.data.numpy()), 0, -1))
     sb.set_title("NN ready image - classified as: " + str(classification))
     sb.axis('off')
@@ -94,7 +93,7 @@ def sub4():
     image_filt_o = image.filter(ImageFilter.BLUR)
     image_filt = prep_image(image_filt_o)
     classification, _ = classify(vgg16, image_filt)
-    sb = fig.add_subplot(311)
+    sb = fig.add_subplot(131)
     sb.imshow(image_filt_o)
     sb.axis('off')
     sb.set_title("Blurred image - classified as: " + str(classification))
@@ -103,7 +102,7 @@ def sub4():
     image_color_o = PIL.ImageOps.invert(image)
     image_color = prep_image(image_color_o)
     classification, _ = classify(vgg16, image_color)
-    sb = fig.add_subplot(312)
+    sb = fig.add_subplot(132)
     sb.imshow(image_color_o)
     sb.axis('off')
     sb.set_title("Inverted color image - classified as: " + str(classification))
@@ -112,7 +111,7 @@ def sub4():
     image_geo_o = image.rotate(45)
     image_geo = prep_image(image_geo_o)
     classification, _ = classify(vgg16, image_geo)
-    sb = fig.add_subplot(313)
+    sb = fig.add_subplot(133)
     sb.imshow(image_geo_o)
     sb.axis('off')
     sb.set_title("45deg. rotated image - classified as: " + str(classification))
