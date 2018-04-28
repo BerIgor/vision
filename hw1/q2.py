@@ -1,10 +1,8 @@
 from scipy import ndimage
 import matplotlib.pyplot as plt
-from scipy.ndimage import filters as nfilters
 from skimage import feature
 from skimage import filters
 import numpy as np
-from sklearn.metrics import f1_score
 import sklearn.metrics as metrics
 from sklearn.preprocessing import Binarizer
 
@@ -68,14 +66,14 @@ def calc_f_measure(name_to_image, name_to_image_gt, method="Canny"):
             image = name_to_image[name]
             gt_image = name_to_image_gt[name]
 
-            if method == "Canny":
+            if method == "Sobel":
                 filtered_image = run_sobel(image, thresh=thresh)
             else:
                 filtered_image = run_canny(image, sigma=2, thresh=thresh)
 
             # Data standardization
-            gt_image = binarizer.transform(gt_image)
-            filtered_image = binarizer.transform(filtered_image)
+            # gt_image = binarizer.transform(gt_image)
+            # filtered_image = binarizer.transform(filtered_image)
             '''
             fig, (sb0, sb1) = plt.subplots(nrows=1, ncols=2)
             plt.gray()
@@ -86,6 +84,7 @@ def calc_f_measure(name_to_image, name_to_image_gt, method="Canny"):
             total_f_measure += metrics.f1_score(gt_image, filtered_image, average='micro')
         f_measure_vec[i] = total_f_measure / 3
         i += 1
+    print(f_measure_vec)
     plt.plot(thresh_range, f_measure_vec)
     plt.suptitle(method + " F-measure")
     plt.xlabel("Threshold")
@@ -97,7 +96,11 @@ def calc_f_measure(name_to_image, name_to_image_gt, method="Canny"):
 if __name__ == "__main__":
     name_to_image_ = load_images()
     name_to_image_gt_ = load_images(postfix="_GT", exten="bmp")
-    edge_detection(name_to_image_)
+    # edge_detection(name_to_image_)
     calc_f_measure(name_to_image_, name_to_image_gt_, method="Canny")
     calc_f_measure(name_to_image_, name_to_image_gt_, method="Sobel")
 
+    r = np.array([False, True])
+    gt = np.array([1.0, 1.0])
+    f = metrics.f1_score(gt, r, average='micro')
+    print(f)

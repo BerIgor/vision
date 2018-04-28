@@ -444,7 +444,6 @@ def prep_image(image):
 def classify(model, image):
     result = model(image)
     net_out = result.data.numpy()
-    # print(str(np.argmax(net_out)) + " " + str(np.max(net_out)))
     return np.argmax(net_out), np.max(net_out)
 
 
