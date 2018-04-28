@@ -203,7 +203,7 @@ def sub7():
     dog = prep_image(dog_o)
 
     fig = plt.figure()
-    fig.suptitle("Our cat and dog")
+    fig.suptitle("sub7 - Our cat and dog")
     sp = fig.add_subplot(321)
     sp.imshow(cat_o)
     sp.axis('off')
@@ -286,7 +286,7 @@ def sub8():
     wolf = prep_image(wolf_o)
 
     fig = plt.figure()
-    fig.suptitle("Our tiger and wolf")
+    fig.suptitle("sub8 - Our tiger and wolf")
     sp = fig.add_subplot(321)
     sp.imshow(tiger_o)
     sp.axis('off')
