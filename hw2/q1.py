@@ -53,3 +53,5 @@ sps[0, 1].imshow(run_canny(image_o, sigma=1.5, thresh=None))
 sps[0, 1].axis('off')
 sps[0, 1].set_title("Canny, σ = 1.5, Default Threshold")
 '''
+
+# Comment to push - verify git is working
