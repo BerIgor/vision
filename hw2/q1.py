@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy import ndimage
 import scipy.ndimage.filters as filters
 import cv2 as cv
+from skimage.transform import pyramid_gaussian
 
 
 def display_images(image_list):
@@ -50,8 +51,10 @@ if __name__ == "__main__":
     # image = ndimage.imread(fname="our_imgs/vettel.jpg", mode="L")
     image = cv.imread("our_imgs/cameraman.jpg")
     # image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    gauss_images = laplacian_decompose(image, 5)
-    display_images(gauss_images)
+    # gauss_images = laplacian_decompose(image, 5)
+    pyramid = tuple(pyramid_gaussian(image, downscale=2, multichannel=True))
+    print('end')
+    # display_images(pyramid)
 
 
 '''
