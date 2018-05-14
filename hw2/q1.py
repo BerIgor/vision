@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 # import scipy
 from scipy import ndimage
@@ -31,9 +32,7 @@ def laplacian_decompose(image, levels):
         #current_filtered = cv.GaussianBlur(src=image, ksize=(kernel_size, kernel_size), sigmaX=current_sigma)
         print("curr sigma == " + str(current_sigma))
         sub_res = previous_filtered - current_filtered
-        # cv.namedWindow("TEST", cv.WINDOW_AUTOSIZE)
-        # cv.imshow("TEST", sub_res, )
-        # cv.waitKey()
+        cvshow("TEST", sub_res)
 
         f_images.append(sub_res)
         previous_sigma = current_sigma
@@ -43,9 +42,17 @@ def laplacian_decompose(image, levels):
     return f_images
 
 def reconstruct_from_laplcian_piramid(lpiramid):
-    
+    # m_tot = np.zeros([1320,000])
+    m_tot = 0
+    for m in lpiramid:
+        m_tot += m
 
+    return m
 
+def cvshow(title,im):
+    cv.namedWindow("TEST", cv.WINDOW_AUTOSIZE)
+    cv.imshow("TEST", im)
+    cv.waitKey()
 
 if __name__ == "__main__":
     image = ndimage.imread(fname='data/Inputs/imgs/0006_001.png', mode="L")
@@ -56,3 +63,7 @@ if __name__ == "__main__":
     # pyramid = tuple(pyramid_gaussian(image, downscale=2, multichannel=True)) # needs more imports
     print('end')
     display_images(laplacian_pyramid)
+    reconstruction = reconstruct_from_laplcian_piramid(laplacian_pyramid)
+    cvshow("Reconstruction", reconstruction)
+
+
