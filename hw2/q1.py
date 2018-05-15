@@ -49,9 +49,9 @@ def reconstruct_from_laplcian_piramid(lpyramid):
     return m_tot
 
 
-def cvshow(title,im):
-    cv.namedWindow("TEST", cv.WINDOW_AUTOSIZE)
-    cv.imshow("TEST", im)
+def cvshow(title, im):
+    cv.namedWindow(title, cv.WINDOW_AUTOSIZE)
+    cv.imshow(title, im)
     cv.waitKey()
 
 
@@ -67,16 +67,40 @@ def part1():
     reconstruction = reconstruct_from_laplcian_piramid(laplacian_pyramid)
     cvshow("Reconstruction", reconstruction)
 
-
+################################################################################
+#                                PART 2
+################################################################################
 def part2():
-    input_image = ndimage.imread(fname='data/Inputs/imgs/0004_6.png', mode="L")
-    input_image_n = np.zeros(np.shape(input_image))
-    cv.normalize(input_image, dst=input_image_n, alpha=0, beta=1)
-    cvshow("P2_1", input_image_n)
-    example_image = ndimage.imread(fname='data/Examples/imgs/6.png', mode="L")
-    example_image_n = np.zeros(np.shape(example_image))
-    cv.normalize(example_image, dst=example_image_n, alpha=0, beta=1)
-    cvshow("P2_2", example_image)
+    input_image = p2_prep_image('data/Inputs/imgs/0004_6.png')
+    example_image = p2_prep_image('data/Examples/imgs/6.png')
+    change_background()
+
+
+def p2_prep_image(imname):
+    image = ndimage.imread(fname=imname, mode="L")
+    image_n = np.zeros(np.shape(image))
+    cv.normalize(image.astype("double"), dst=image_n, alpha=0.0, beta=1.0, norm_type=cv.NORM_MINMAX)
+    return image_n
+
+
+def change_background():
+    # trash
+    iimage_mask = p2_prep_image('data/Inputs/masks/0004_6.png')
+    eimage_bg = p2_prep_image('data/Examples/bgs/6.jpg')
+
+    input_image = p2_prep_image('data/Inputs/imgs/0004_6.png')
+    example_image = p2_prep_image('data/Examples/imgs/6.png')
+
+    # end of trash
+    # result = np.zeros(np.shape(input_image))
+    # cvshow("first", np.multiply(eimage_bg, iimage_mask))
+    # cvshow("second", np.multiply(input_image, 1-iimage_mask))
+    a1 = np.multiply(eimage_bg, iimage_mask)
+    a2 = np.multiply(input_image, 1 - iimage_mask)
+
+    result = np.multiply(eimage_bg, iimage_mask) + np.multiply(input_image, 1-iimage_mask)
+    cvshow("gogo", result)
+
 
 
 if __name__ == "__main__":
