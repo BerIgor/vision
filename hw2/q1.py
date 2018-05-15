@@ -85,7 +85,7 @@ def part2():
         example_laplacian_pyramid = laplacian_decompose(example_channel, 6)
         output_laplacian_pyramid = list()
         for level in range(0, len(input_laplacian_pyramid)):
-            gain = p22_calc_gain(input_laplacian_pyramid[level], example_laplacian_pyramid[level], level)
+            gain = p22_calc_gain(input_laplacian_pyramid[level], example_laplacian_pyramid[level], level+1)
             output_laplacian_pyramid.append(np.multiply(gain, input_laplacian_pyramid[level]))
 
         output_channels.append(output_laplacian_pyramid)
@@ -133,11 +133,12 @@ def p22_calc_gain(input_level, example_level, level):
 def p22_reconstruct_image(channel_pyramid_list):
     height, width = np.shape(channel_pyramid_list[0][0])
     result = np.zeros([height, width, 3])
-    i = 0
+    i = 2
     for channel in channel_pyramid_list:
         reconstructed_channel = reconstruct_from_laplcian_piramid(channel)
         result[:, :, i] = reconstructed_channel
         i += 1
+        i, _ = divmod(i, 3)
     iml = list()
     iml.append(result)
     iml.append(result)
