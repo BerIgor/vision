@@ -28,10 +28,10 @@ def laplacian_decompose(image, levels):
         sub_res = previous_filtered - current_filtered
         # cvshow("TEST", sub_res)
 
-        iml = list()
-        iml.append(sub_res)
-        iml.append(sub_res)
-        display_images(iml)
+        # iml = list()
+        # iml.append(sub_res)
+        # iml.append(sub_res)
+        # display_images(iml)
 
         f_images.append(sub_res)
         previous_sigma = current_sigma
@@ -67,7 +67,10 @@ def part2():
         output_laplacian_pyramid = list()
         for level in range(0, len(input_laplacian_pyramid)):
             gain = p22_calc_gain(input_laplacian_pyramid[level], example_laplacian_pyramid[level], level+1)
-            output_laplacian_pyramid.append(np.multiply(gain, input_laplacian_pyramid[level]))
+            if level == len(input_laplacian_pyramid)-1:
+                output_laplacian_pyramid.append(example_laplacian_pyramid[level])
+            else:
+                output_laplacian_pyramid.append(np.multiply(gain, input_laplacian_pyramid[level]))
 
         output_channels.append(output_laplacian_pyramid)
     # now we have a list of channels, and per channel, we have a pyramid
@@ -83,7 +86,7 @@ def p21_apply_background(input_image, background_image, mask):
 
 def p22_calc_energy(lap_level_image, level):
     left = np.power(lap_level_image, 2)
-    energy = filters.gaussian_filter(left, level)
+    energy = filters.gaussian_filter(left, level*2)
     return energy
 
 
@@ -91,8 +94,8 @@ def p22_calc_gain(input_level, example_level, level):
     input_energy = p22_calc_energy(input_level, level)
     example_energy = p22_calc_energy(example_level, level)
     denominator = example_energy
-    numerator = input_energy + 0.0004
-    gain = np.sqrt(numerator/denominator)
+    numerator = np.add(input_energy, 0.0004)
+    gain = np.sqrt(np.divide(numerator, denominator))
     return gain
 
 
@@ -105,18 +108,15 @@ def p22_reconstruct_image(channel_pyramid_list):
         reconstructed_channel = reconstruct_from_laplcian_piramid(channel)
         result[:, :, i] = reconstructed_channel
         i += 1
+
+    # BG
+    _, _, bg_image, mask = p21_read_images("0004_6", "6")
+    result = p21_apply_background(result, bg_image, mask)
+
     iml = list()
     iml.append(result)
     iml.append(result)
     display_images(iml)
-
-
-if __name__ == "__main__":
-    # # # part 1 # # #
-    # part1()
-
-    # # # part 2 # # #
-    part2()
 
 
 ################################################################################
@@ -150,7 +150,7 @@ def cvshow(title, im):
 
 def display_images(image_list):
     f, sps = plt.subplots(nrows=1, ncols=len(image_list))
-    plt.gray()
+    # plt.gray()
 
     for i in range(0, len(image_list)):
         sps[i].imshow(image_list[i])
@@ -158,3 +158,11 @@ def display_images(image_list):
 
     plt.show()
     return
+
+
+if __name__ == "__main__":
+    # # # part 1 # # #
+    # part1()
+
+    # # # part 2 # # #
+    part2()
