@@ -1,38 +1,37 @@
 import numpy as np
 import matplotlib.pyplot as plt
-# import scipy
 from scipy import ndimage
 import scipy.ndimage.filters as filters
 import cv2 as cv
-import imageio as imio
-import scipy.misc as misc
 
 
-def display_images(image_list):
-    f, sps = plt.subplots(nrows=1, ncols=len(image_list))
-    plt.gray()
-
-    for i in range(0, len(image_list)):
-        sps[i].imshow(image_list[i])
-        sps[i].axis('off')
-
-    plt.show()
-    return
+################################################################################
+#                                PART 1
+################################################################################
+def part1():
+    image = p1_prep_image('data/Inputs/imgs/0006_001.png')
+    laplacian_pyramid = laplacian_decompose(image, 6)
+    reconstruction = reconstruct_from_laplcian_piramid(laplacian_pyramid)
+    iml = list()
+    iml.append(image)
+    iml.append(reconstruction)
+    display_images(iml)
 
 
 def laplacian_decompose(image, levels):
     f_images = list()
-
     previous_filtered = image
     previous_sigma = 2
-    kernel_size = 21
     for i in range(0, levels-1):
         current_sigma = previous_sigma * 2
         current_filtered = filters.gaussian_filter(image, current_sigma)
-        #kernel_size = 5*current_sigma + 1
-        #current_filtered = cv.GaussianBlur(src=image, ksize=(kernel_size, kernel_size), sigmaX=current_sigma)
         sub_res = previous_filtered - current_filtered
         # cvshow("TEST", sub_res)
+
+        iml = list()
+        iml.append(sub_res)
+        iml.append(sub_res)
+        display_images(iml)
 
         f_images.append(sub_res)
         previous_sigma = current_sigma
@@ -47,24 +46,6 @@ def reconstruct_from_laplcian_piramid(lpyramid):
     for m in lpyramid:
         m_tot += m
     return m_tot
-
-
-def cvshow(title, im):
-    cv.namedWindow(title, cv.WINDOW_NORMAL)
-    cv.imshow(title, im)
-    cv.waitKey()
-
-
-def part1():
-    image = ndimage.imread(fname='data/Inputs/imgs/0006_001.png', mode="L")
-    # image = cv.imread('data/Inputs/imgs/0006_001.png')
-    # image = cv.cvtColor(image, cv.COLOR_BGR2GRAY) # For our own RGB input
-    # cv.imshow("original", image)
-    laplacian_pyramid = laplacian_decompose(image, 5)
-    # pyramid = tuple(pyramid_gaussian(image, downscale=2, multichannel=True)) # needs more imports
-    # display_images(laplacian_pyramid)
-    reconstruction = reconstruct_from_laplcian_piramid(laplacian_pyramid)
-    cvshow("Reconstruction", reconstruction)
 
 
 ################################################################################
@@ -95,20 +76,6 @@ def part2():
     return
 
 
-def p2_prep_image(file_name):
-    image = ndimage.imread(fname=file_name, mode='RGB')
-    image_n = image / 255
-    return image_n
-
-
-def p21_read_images(input_name, example_name):
-    input_image = p2_prep_image('data/Inputs/imgs/' + str(input_name) + '.png')
-    example_image = p2_prep_image('data/Examples/imgs/' + str(example_name) + '.png')
-    mask = p2_prep_image('data/Inputs/masks/' + str(input_name) + '.png')
-    bg = p2_prep_image('data/Examples/bgs/' + str(example_name) + '.jpg')
-    return input_image, example_image, bg, mask
-
-
 def p21_apply_background(input_image, background_image, mask):
     result = np.multiply(background_image, 1-mask) + np.multiply(input_image, mask)
     return result
@@ -133,12 +100,11 @@ def p22_calc_gain(input_level, example_level, level):
 def p22_reconstruct_image(channel_pyramid_list):
     height, width = np.shape(channel_pyramid_list[0][0])
     result = np.zeros([height, width, 3])
-    i = 2
+    i = 0
     for channel in channel_pyramid_list:
         reconstructed_channel = reconstruct_from_laplcian_piramid(channel)
         result[:, :, i] = reconstructed_channel
         i += 1
-        i, _ = divmod(i, 3)
     iml = list()
     iml.append(result)
     iml.append(result)
@@ -151,3 +117,44 @@ if __name__ == "__main__":
 
     # # # part 2 # # #
     part2()
+
+
+################################################################################
+#                                Utils
+################################################################################
+def p1_prep_image(file_name):
+    image = ndimage.imread(fname=file_name, mode='L')
+    image_n = image / 255
+    return image_n
+
+
+def p2_prep_image(file_name):
+    image = ndimage.imread(fname=file_name, mode='RGB')
+    image_n = image / 255
+    return image_n
+
+
+def p21_read_images(input_name, example_name):
+    input_image = p2_prep_image('data/Inputs/imgs/' + str(input_name) + '.png')
+    example_image = p2_prep_image('data/Examples/imgs/' + str(example_name) + '.png')
+    mask = p2_prep_image('data/Inputs/masks/' + str(input_name) + '.png')
+    bg = p2_prep_image('data/Examples/bgs/' + str(example_name) + '.jpg')
+    return input_image, example_image, bg, mask
+
+
+def cvshow(title, im):
+    cv.namedWindow(title, cv.WINDOW_NORMAL)
+    cv.imshow(title, im)
+    cv.waitKey()
+
+
+def display_images(image_list):
+    f, sps = plt.subplots(nrows=1, ncols=len(image_list))
+    plt.gray()
+
+    for i in range(0, len(image_list)):
+        sps[i].imshow(image_list[i])
+        sps[i].axis('off')
+
+    plt.show()
+    return
