@@ -154,9 +154,10 @@ def cvshow(title, im):
 
 if __name__ == "__main__":
     print("Welcome to q3")
-    video_fname = 'our_imgs/banana.mov'
+    video_fname = 'our_imgs/dragon.mov'
     frame = video_to_frames(video_fname)
     nn_test(frame)
+    image_get_fg_mask(frame)
     print("Finished")
     # image_get_fg_mask(frame)
 
