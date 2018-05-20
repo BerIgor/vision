@@ -12,10 +12,7 @@ def part1():
     image = p1_prep_image('data/Inputs/imgs/0006_001.png')
     laplacian_pyramid = laplacian_decompose(image, 6)
     reconstruction = reconstruct_from_laplcian_piramid(laplacian_pyramid)
-    iml = list()
-    iml.append(image)
-    iml.append(reconstruction)
-    display_images(iml)
+    cvshow("Part1", reconstruction)
 
 
 def laplacian_decompose(image, levels):
@@ -26,12 +23,6 @@ def laplacian_decompose(image, levels):
         current_sigma = previous_sigma * 2
         current_filtered = filters.gaussian_filter(image, current_sigma)
         sub_res = previous_filtered - current_filtered
-        # cvshow("TEST", sub_res)
-
-        # iml = list()
-        # iml.append(sub_res)
-        # iml.append(sub_res)
-        # display_images(iml)
 
         f_images.append(sub_res)
         previous_sigma = current_sigma
@@ -84,9 +75,9 @@ def p21_apply_background(input_image, background_image, mask):
     return result
 
 
-def p22_calc_energy(lap_level_image, level):
+def p22_calc_energy(lap_level_image, next_level):
     left = np.power(lap_level_image, 2)
-    energy = filters.gaussian_filter(left, level*2)
+    energy = filters.gaussian_filter(left, 2**next_level)
     return energy
 
 
@@ -94,8 +85,9 @@ def p22_calc_gain(input_level, example_level, level):
     input_energy = p22_calc_energy(input_level, level)
     example_energy = p22_calc_energy(example_level, level)
     denominator = example_energy
-    numerator = np.add(input_energy, 0.0004)
+    numerator = np.add(input_energy, 0.0001)
     gain = np.sqrt(np.divide(numerator, denominator))
+    gain = np.clip(gain, a_min=0.9, a_max=2.8)
     return gain
 
 
@@ -113,10 +105,11 @@ def p22_reconstruct_image(channel_pyramid_list):
     _, _, bg_image, mask = p21_read_images("0004_6", "6")
     result = p21_apply_background(result, bg_image, mask)
 
-    iml = list()
-    iml.append(result)
-    iml.append(result)
-    display_images(iml)
+    cvshow("Reconstructed", result)
+    # iml = list()
+    # iml.append(result)
+    # iml.append(result)
+    # display_images(iml)
 
 
 ################################################################################
@@ -129,7 +122,8 @@ def p1_prep_image(file_name):
 
 
 def p2_prep_image(file_name):
-    image = ndimage.imread(fname=file_name, mode='RGB')
+    # image = ndimage.imread(fname=file_name, mode='RGB')
+    image = cv.imread(file_name)
     image_n = image / 255
     return image_n
 
