@@ -84,8 +84,8 @@ def p22_calc_energy(lap_level_image, next_level):
 def p22_calc_gain(input_level, example_level, level):
     input_energy = p22_calc_energy(input_level, level)
     example_energy = p22_calc_energy(example_level, level)
-    denominator = example_energy
-    numerator = np.add(input_energy, 0.0001)
+    numerator = example_energy
+    denominator = np.add(input_energy, 0.0001)
     gain = np.sqrt(np.divide(numerator, denominator))
     gain = np.clip(gain, a_min=0.9, a_max=2.8)
     return gain
