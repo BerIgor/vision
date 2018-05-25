@@ -148,6 +148,8 @@ blurred_image = img_not_preprocessed.filter(ImageFilter.GaussianBlur(radius=4))
 final1 = Image.new("RGBA", blurred_image.size)
 final1.paste(blurred_image)
 final1.paste(layer2_tmp, (0,0), layer2_tmp)
+plt.imshow(final1);
+plt.show()
 
 final1
 
