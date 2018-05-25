@@ -23,7 +23,8 @@ import pytorch_segmentation_detection.models.resnet_dilated as resnet_dilated
 
 
 model_path = pwd + '/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmentation/resnet_34_8s_68.pth'
-video_path = pwd + '/our_data/ariel.mp4'
+source_video_path = pwd + '/our_data/ariel.mp4'
+target_video_path = pwd + '/our_data/ariel_m.mpg4'
 
 
 def image_get_fg_mask(image):
@@ -44,7 +45,8 @@ def create_masked_video(src_video, trgt_video):
     video_reader = cv.VideoCapture(src_video)
     # video_format = cv.VideoWriter_fourcc('M', 'J', 'P', 'G')
     # 0x00000021
-    video_writer = cv.VideoWriter(trgt_video, 0x00000021, 10, (480, 720))
+    video_format = cv.VideoWriter_fourcc('M', 'P', 'G', '4')
+    video_writer = cv.VideoWriter(trgt_video, video_format, 10, (480, 720))
 
     i = 0
     more_frames = True
