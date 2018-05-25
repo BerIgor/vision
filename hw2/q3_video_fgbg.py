@@ -24,8 +24,7 @@ import pytorch_segmentation_detection.models.resnet_dilated as resnet_dilated
 
 model_path = pwd + '/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmentation/resnet_34_8s_68.pth'
 source_video_path = pwd + '/our_data/ariel.mp4'
-target_video_path = pwd + '/our_data/ariel_m.mpg4'
-
+target_video_path = pwd + '/our_data/ariel_m.avi' # OpenCV must have avi as output. https://github.com/ContinuumIO/anaconda-issues/issues/223#issuecomment-285523938
 
 def image_get_fg_mask(image):
     fcn = resnet_dilated.Resnet34_8s(num_classes=21)
@@ -43,13 +42,15 @@ def image_get_fg_mask(image):
 
 def create_masked_video(src_video, trgt_video):
     video_reader = cv.VideoCapture(src_video)
-    # video_format = cv.VideoWriter_fourcc('M', 'J', 'P', 'G')
-    # 0x00000021
-    video_format = cv.VideoWriter_fourcc('M', 'P', 'G', '4')
-    video_writer = cv.VideoWriter(trgt_video, video_format, 10, (480, 720))
+    more_frames = True
+    more_frames, frame = video_reader.read()
+    rows = frame.shape[0]
+    cols = frame.shape[1]
+
+    video_format = cv.VideoWriter_fourcc(*"XVID")
+    video_writer = cv.VideoWriter(trgt_video, video_format, 10, (cols,rows)) # In the constructor (column, row). However in video_writer.write its (row, column).
 
     i = 0
-    more_frames = True
     while more_frames:
         more_frames, frame = video_reader.read()
         more_frames, frame = video_reader.read()
@@ -72,8 +73,13 @@ def create_masked_video(src_video, trgt_video):
         if not more_frames:
             break
 
+        # Correcting frame rotation
+        rot_mat = cv.getRotationMatrix2D(((cols - 1) / 2.0, (rows - 1) / 2.0), 270, 1)
+        frame = cv.warpAffine(frame, rot_mat, (cols, rows))
+        # Segment and remove background from video
         mask = image_get_fg_mask(frame)
         masked = apply_mask(frame, mask)
+        # Write segmented image to output video
         video_writer.write(masked)
         print(i)
         i += 1
