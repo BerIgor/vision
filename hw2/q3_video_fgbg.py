@@ -8,19 +8,22 @@ from PIL import Image
 
 import sys, os
 import torch
-sys.path.append('C:/GitProjects/vision/hw2/q3')
-sys.path.append('C:/GitProjects/vision/hw2/q3/pytorch_segmentation_detection/')
-sys.path.insert(0, 'C:/GitProjects/vision/hw2/q3/vision/')
 
+# Prepare paths
+pwd = os.getcwd().replace('\\','//')
+q3 = pwd + '/q3'
+
+sys.path.append(pwd + '/q3')
+sys.path.append(pwd + '/q3/pytorch_segmentation_detection/')
+sys.path.insert(0, pwd + '/q3/vision/')
 
 from torchvision import transforms
 from torch.autograd import Variable
 import pytorch_segmentation_detection.models.resnet_dilated as resnet_dilated
 
 
-model_path = 'C:/GitProjects/vision/hw2/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmentation/resnet_34_8s_68.pth'
-source_video_path = 'C:/GitProjects/vision/hw2/our_data/ariel.mp4'
-target_video_path = 'C:/GitProjects/vision/hw2/our_data/ariel_m.mp4'
+model_path = pwd + '/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmentation/resnet_34_8s_68.pth'
+video_path = pwd + '/our_data/ariel.mp4'
 
 
 def image_get_fg_mask(image):
