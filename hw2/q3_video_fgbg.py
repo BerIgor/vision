@@ -25,10 +25,6 @@ import pytorch_segmentation_detection.models.resnet_dilated as resnet_dilated
 model_path = pwd + '/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmentation/resnet_34_8s_68.pth'
 video_path = pwd + '/our_data/ariel.mp4'
 
-model_path = 'C:/GitProjects/vision/hw2/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmentation/resnet_34_8s_68.pth'
-source_video_path = 'C:/GitProjects/vision/hw2/our_data/ariel.mp4'
-target_video_path = 'C:/GitProjects/vision/hw2/our_data/ariel_m.mp4'
-
 
 def image_get_fg_mask(image):
     fcn = resnet_dilated.Resnet34_8s(num_classes=21)
