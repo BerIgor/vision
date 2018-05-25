@@ -30,11 +30,9 @@ def image_get_fg_mask(image):
     nn_result = fcn(image)
     _, tmp = nn_result.squeeze(0).max(0)
     segmentation = tmp.data.cpu().numpy().squeeze()
-    print(np.shape(segmentation))
     mask = np.zeros(np.shape(segmentation))
+    # note: there can be more values, but 0 is bg
     mask[segmentation == 15] = 1
-    plt.imshow(segmentation)
-    plt.show()
     return mask
 
 
@@ -68,9 +66,11 @@ def cvshow(title, im):
 
 
 def apply_mask(image, mask):
-    mask_rgb = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
-    masked_image = np.multiply(image, mask_rgb)
-    return masked_image
+    for i in range(3):
+        layer = image[:, :, i]
+        layer[mask == 0] = 0
+        image[:, :, i] = layer
+    return image
 
 
 if __name__ == "__main__":
@@ -79,8 +79,8 @@ if __name__ == "__main__":
     frame = cv.imread('our_data/GAzE2.jpeg')
     # nn_test(frame)
     mask = image_get_fg_mask(frame)
+    cvshow("mask", mask)
     masked = apply_mask(frame, mask)
-    cvshow("mask", masked)
-    print("Finished")
+    cvshow("after mask applied", masked)
     # image_get_fg_mask(frame)
 
