@@ -9,12 +9,12 @@
 # get_ipython().magic('matplotlib inline')
 
 import sys, os
-sys.path.append('C:/Users/abinenfe/Documents/Studies/Computer Vision HW - Git/vision/hw2/q3/')
-sys.path.append('C:/Users/abinenfe/Documents/Studies/Computer Vision HW - Git/vision/hw2/q3/pytorch_segmentation_detection/')
-sys.path.insert(0, 'C:/Users/abinenfe/Documents/Studies/Computer Vision HW - Git/vision/hw2/q3/vision/')
+sys.path.append('C:/GitProjects/vision/hw2/q3')
+sys.path.append('C:/GitProjects/vision/hw2/q3/pytorch_segmentation_detection/')
+sys.path.insert(0, 'C:/GitProjects/vision/hw2/q3/vision/')
 
 # Use second GPU -pytorch-segmentation-detection- change if you want to use a first one
-os.environ["CUDA_VISIBLE_DEVICES"] = '0' # Ariel - No CUDA devices for us :(
+# os.environ["CUDA_VISIBLE_DEVICES"] = '0' # Ariel - No CUDA devices for us :(
 
 from PIL import Image
 from matplotlib import pyplot as plt
