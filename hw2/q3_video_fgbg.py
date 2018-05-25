@@ -19,7 +19,8 @@ import pytorch_segmentation_detection.models.resnet_dilated as resnet_dilated
 
 
 model_path = 'C:/GitProjects/vision/hw2/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmentation/resnet_34_8s_68.pth'
-video_path = 'C:/GitProjects/vision/hw2/our_data/ariel.mp4'
+source_video_path = 'C:/GitProjects/vision/hw2/our_data/ariel.mp4'
+target_video_path = 'C:/GitProjects/vision/hw2/our_data/ariel_m.mp4'
 
 
 def image_get_fg_mask(image):
@@ -36,12 +37,38 @@ def image_get_fg_mask(image):
     return mask
 
 
+def create_masked_video(src_video, trgt_video):
+    video_reader = cv.VideoCapture(src_video)
+    video_format = cv.VideoWriter_fourcc('M', 'P', '4', '2')
+    video_writer = cv.VideoWriter(trgt_video, video_format, 30, (480, 720))
+
+    i = 0
+    more_frames = True
+    while more_frames:
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
+
+        mask = image_get_fg_mask(frame)
+        masked = apply_mask(frame, mask)
+        video_writer.write(masked)
+        print(i)
+        i += 1
+
+    video_writer.release()
+    print("DONE")
+    return
+
 def video_to_frames(video_name):
     video = cv.VideoCapture(video_name)
-    while True:
+    while video.isOpened():
         ret, frame = video.read()
-        # cvshow("TEST", frame)
-        # key = cv.waitKey(1000)
+        print(np.shape(frame))
+        # print(ret)
         break
         # if key == ord('q'):
         #    break
@@ -76,11 +103,11 @@ def apply_mask(image, mask):
 if __name__ == "__main__":
     print("Welcome to q3")
     # frame = video_to_frames(video_path)
-    frame = cv.imread('our_data/GAzE2.jpeg')
+    # frame = cv.imread('our_data/GAzE2.jpeg')
     # nn_test(frame)
-    mask = image_get_fg_mask(frame)
-    cvshow("mask", mask)
-    masked = apply_mask(frame, mask)
-    cvshow("after mask applied", masked)
-    # image_get_fg_mask(frame)
+    # mask = image_get_fg_mask(frame)
+    # cvshow("mask", mask)
+    # masked = apply_mask(frame, mask)
+    create_masked_video(source_video_path, target_video_path)
+    # cvshow("after mask applied", masked)
 
