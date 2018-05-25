@@ -1,9 +1,9 @@
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
-import torchvision as tv
-import torchvision.transforms as transforms
-from torch.autograd import Variable
+# import torchvision as tv
+# import torchvision.transforms as transforms
+# from torch.autograd import Variable
 from PIL import Image
 
 
@@ -19,28 +19,28 @@ def video_to_frames(video_name):
     return frame
 
 
-def prep_image(image):
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
-    our_transform = transforms.Compose([
-        transforms.Resize([224, 224]),
-        transforms.ToTensor(),
-        normalize,
-    ])
-    image = our_transform(image).float()
-    image = image.unsqueeze(0)
-    image = Variable(image, requires_grad=True)
-    return image
+# def prep_image(image):
+#     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+#                                      std=[0.229, 0.224, 0.225])
+#     our_transform = transforms.Compose([
+#         transforms.Resize([224, 224]),
+#         transforms.ToTensor(),
+#         normalize,
+#     ])
+#     image = our_transform(image).float()
+#     image = image.unsqueeze(0)
+#     image = Variable(image, requires_grad=True)
+#     return image
 
 
-def nn_test(image):
-    pil_image = Image.fromarray(image)
-    pil_image = prep_image(pil_image)
-    dn = tv.models.resnet101(pretrained=True)
-    dn.eval()
-    # print(image_tensor)
-    result = dn(pil_image)
-    print(result)
+# def nn_test(image):
+#     pil_image = Image.fromarray(image)
+#     pil_image = prep_image(pil_image)
+#     dn = tv.models.resnet101(pretrained=True)
+#     dn.eval()
+#     # print(image_tensor)
+#     result = dn(pil_image)
+#     print(result)
 
 
 # 0 is black, 255 is white
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     print("Welcome to q3")
     video_fname = 'our_data/cup.mov'
     frame = video_to_frames(video_fname)
-    nn_test(frame)
+    # nn_test(frame)
     image_get_fg_mask(frame)
     print("Finished")
     # image_get_fg_mask(frame)
