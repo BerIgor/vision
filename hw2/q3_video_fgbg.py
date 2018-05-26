@@ -80,8 +80,14 @@ def create_masked_video(src_video, trgt_video):
 
         # Correcting frame rotation
         frame = np.transpose(frame, (1, 0, 2))
+
         # Segment and remove background from video
         mask = image_get_fg_mask(frame)
+
+        # Perform Morphological Open to remove noise
+        kernel = np.ones((10,10),np.uint8)
+        mask = cv.morphologyEx(mask, cv.MORPH_OPEN, kernel)
+
         masked = apply_mask(frame, mask)
         # Write segmented image to output video
         video_writer.write(masked)
