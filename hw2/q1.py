@@ -129,7 +129,6 @@ def p1_prep_image(file_name):
 
 
 def p2_prep_image(file_name):
-    # image = ndimage.imread(fname=file_name, mode='RGB')
     image = cv.imread(file_name)
     image_n = image / 255
     return image_n
@@ -140,8 +139,8 @@ def p21_read_images(input_name, example_name, source='course'):
         example_image = p2_prep_image('data/Examples/imgs/' + str(example_name) + '.png')
         bg = p2_prep_image('data/Examples/bgs/' + str(example_name) + '.jpg')
     else:
-        example_image = p2_prep_image('our_data/old.jpg')
-        bg = p2_prep_image('our_data/old_bg.jpg')
+        example_image = p2_prep_image('our_data/old.png')
+        bg = p2_prep_image('our_data/old_bg.png')
 
     input_image = p2_prep_image('data/Inputs/imgs/' + str(input_name) + '.png')
     mask = p2_prep_image('data/Inputs/masks/' + str(input_name) + '.png')
@@ -174,15 +173,15 @@ def display_images(image_list, mode='RGB'):
 
 if __name__ == "__main__":
     # # # part 1 # # #
-    # part1()
+    part1()
 
     # # # part 2 # # #
-    # part2("0004_6", "6", 'course')
-    # part2("0004_6", "16", 'course')
-    # part2("0004_6", "21", 'course')
+    part2("0004_6", "6", 'course')
+    part2("0004_6", "16", 'course')
+    part2("0004_6", "21", 'course')
 
-    # part2("0006_001", "0", 'course')
-    # part2("0006_001", "9", 'course')
-    # part2("0006_001", "10", 'course')
+    part2("0006_001", "0", 'course')
+    part2("0006_001", "9", 'course')
+    part2("0006_001", "10", 'course')
 
     part2("0004_6", "10", 'our')

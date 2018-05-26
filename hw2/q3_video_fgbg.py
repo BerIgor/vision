@@ -42,16 +42,21 @@ def image_get_fg_mask(image):
 
 def create_masked_video(src_video, trgt_video):
     video_reader = cv.VideoCapture(src_video)
-    more_frames = True
+
     more_frames, frame = video_reader.read()
     rows = frame.shape[0]
     cols = frame.shape[1]
 
     video_format = cv.VideoWriter_fourcc(*"XVID")
-    video_writer = cv.VideoWriter(trgt_video, video_format, 10, (cols,rows)) # In the constructor (column, row). However in video_writer.write its (row, column).
+    video_writer = cv.VideoWriter(trgt_video, video_format, 10, (rows,cols)) # In the constructor (column, row). However in video_writer.write its (row, column).
 
     i = 0
     while more_frames:
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
+        more_frames, frame = video_reader.read()
         more_frames, frame = video_reader.read()
         more_frames, frame = video_reader.read()
         more_frames, frame = video_reader.read()
@@ -74,8 +79,7 @@ def create_masked_video(src_video, trgt_video):
             break
 
         # Correcting frame rotation
-        rot_mat = cv.getRotationMatrix2D(((cols - 1) / 2.0, (rows - 1) / 2.0), 270, 1)
-        frame = cv.warpAffine(frame, rot_mat, (cols, rows))
+        frame = np.transpose(frame, (1, 0, 2))
         # Segment and remove background from video
         mask = image_get_fg_mask(frame)
         masked = apply_mask(frame, mask)
