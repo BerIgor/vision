@@ -9,10 +9,18 @@ import cv2 as cv
 #                                PART 1
 ################################################################################
 def part1():
-    image = p1_prep_image('data/Inputs/imgs/0006_001.png')
+    image = p1_prep_image('our_data/cookie.PNG')
     laplacian_pyramid = laplacian_decompose(image, 6)
+    display_images(laplacian_pyramid, mode='GRAY')
     reconstruction = reconstruct_from_laplcian_piramid(laplacian_pyramid)
-    cvshow("Part1", reconstruction)
+    diff = np.subtract(image, reconstruction)
+    diff = np.abs(diff)
+
+    iml = list()
+    iml.append(image)
+    iml.append(reconstruction)
+    iml.append(diff)
+    display_images(iml, mode='GRAY')
 
 
 def laplacian_decompose(image, levels):
@@ -42,14 +50,13 @@ def reconstruct_from_laplcian_piramid(lpyramid):
 ################################################################################
 #                                PART 2
 ################################################################################
-def part2():
-    input_image, example_image, bg_image, mask = p21_read_images("0004_6", "6")
+def part2(input_name, example_name, source='course'):
+    input_image, example_image, bg_image, mask = p21_read_images(input_name, example_name, source)
     input_w_bg = p21_apply_background(input_image, bg_image, mask)
 
     output_channels = list()
     # p22
     for channel_num in range(0, np.shape(input_w_bg)[2]):
-        print(channel_num)
         input_channel = input_w_bg[:, :, channel_num]
         example_channel = example_image[:, :, channel_num]
 
@@ -66,7 +73,12 @@ def part2():
         output_channels.append(output_laplacian_pyramid)
     # now we have a list of channels, and per channel, we have a pyramid
 
-    p22_reconstruct_image(output_channels)
+    combined = p22_reconstruct_image(output_channels, bg_image, mask)
+    iml = list()
+    iml.append(input_image)
+    iml.append(example_image)
+    iml.append(combined)
+    display_images(iml)
     return
 
 
@@ -92,7 +104,7 @@ def p22_calc_gain(input_level, example_level, level):
 
 
 # The input is a list of channels, and of each channel is a list
-def p22_reconstruct_image(channel_pyramid_list):
+def p22_reconstruct_image(channel_pyramid_list, background, mask):
     height, width = np.shape(channel_pyramid_list[0][0])
     result = np.zeros([height, width, 3])
     i = 0
@@ -102,14 +114,9 @@ def p22_reconstruct_image(channel_pyramid_list):
         i += 1
 
     # BG
-    _, _, bg_image, mask = p21_read_images("0004_6", "6")
-    result = p21_apply_background(result, bg_image, mask)
-
-    cvshow("Reconstructed", result)
-    # iml = list()
-    # iml.append(result)
-    # iml.append(result)
-    # display_images(iml)
+    # _, _, bg_image, mask = p21_read_images("0004_6", "6")
+    result = p21_apply_background(result, background, mask)
+    return result
 
 
 ################################################################################
@@ -128,11 +135,18 @@ def p2_prep_image(file_name):
     return image_n
 
 
-def p21_read_images(input_name, example_name):
-    input_image = p2_prep_image('data/Inputs/imgs/' + str(input_name) + '.png')
-    example_image = p2_prep_image('data/Examples/imgs/' + str(example_name) + '.png')
-    mask = p2_prep_image('data/Inputs/masks/' + str(input_name) + '.png')
-    bg = p2_prep_image('data/Examples/bgs/' + str(example_name) + '.jpg')
+def p21_read_images(input_name, example_name, source='course'):
+    if source == 'course':
+        input_image = p2_prep_image('data/Inputs/imgs/' + str(input_name) + '.png')
+        example_image = p2_prep_image('data/Examples/imgs/' + str(example_name) + '.png')
+        mask = p2_prep_image('data/Inputs/masks/' + str(input_name) + '.png')
+        bg = p2_prep_image('data/Examples/bgs/' + str(example_name) + '.jpg')
+    else:
+        input_image = p2_prep_image('data/Inputs/imgs/0004_6.png')
+        example_image = p2_prep_image('our_data/old.jpg')
+        mask = np.ones(np.shape(input_image))
+        bg = np.zeros(np.shape(input_image))
+
     return input_image, example_image, bg, mask
 
 
@@ -142,12 +156,17 @@ def cvshow(title, im):
     cv.waitKey()
 
 
-def display_images(image_list):
+def display_images(image_list, mode='RGB'):
     f, sps = plt.subplots(nrows=1, ncols=len(image_list))
-    # plt.gray()
+    if mode == 'GRAY':
+        plt.gray()
 
     for i in range(0, len(image_list)):
-        sps[i].imshow(image_list[i])
+        if mode == 'RGB':
+            image = np.flip(image_list[i], 2)
+        else:
+            image = image_list[i]
+        sps[i].imshow(image)
         sps[i].axis('off')
 
     plt.show()
@@ -159,4 +178,12 @@ if __name__ == "__main__":
     # part1()
 
     # # # part 2 # # #
-    part2()
+    part2("0004_6", "6", 'course')
+    part2("0004_6", "16",'course')
+    part2("0004_6", "21", 'course')
+
+    part2("0006_001", "0", 'course')
+    part2("0006_001", "9", 'course')
+    part2("0006_001", "10", 'course')
+
+    part2("0006_001", "10", 'our')
