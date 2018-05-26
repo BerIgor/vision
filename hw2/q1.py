@@ -137,15 +137,14 @@ def p2_prep_image(file_name):
 
 def p21_read_images(input_name, example_name, source='course'):
     if source == 'course':
-        input_image = p2_prep_image('data/Inputs/imgs/' + str(input_name) + '.png')
         example_image = p2_prep_image('data/Examples/imgs/' + str(example_name) + '.png')
-        mask = p2_prep_image('data/Inputs/masks/' + str(input_name) + '.png')
         bg = p2_prep_image('data/Examples/bgs/' + str(example_name) + '.jpg')
     else:
-        input_image = p2_prep_image('data/Inputs/imgs/0004_6.png')
         example_image = p2_prep_image('our_data/old.jpg')
-        mask = np.ones(np.shape(input_image))
-        bg = np.zeros(np.shape(input_image))
+        bg = p2_prep_image('our_data/old_bg.jpg')
+
+    input_image = p2_prep_image('data/Inputs/imgs/' + str(input_name) + '.png')
+    mask = p2_prep_image('data/Inputs/masks/' + str(input_name) + '.png')
 
     return input_image, example_image, bg, mask
 
@@ -178,12 +177,12 @@ if __name__ == "__main__":
     # part1()
 
     # # # part 2 # # #
-    part2("0004_6", "6", 'course')
-    part2("0004_6", "16",'course')
-    part2("0004_6", "21", 'course')
+    # part2("0004_6", "6", 'course')
+    # part2("0004_6", "16", 'course')
+    # part2("0004_6", "21", 'course')
 
-    part2("0006_001", "0", 'course')
-    part2("0006_001", "9", 'course')
-    part2("0006_001", "10", 'course')
+    # part2("0006_001", "0", 'course')
+    # part2("0006_001", "9", 'course')
+    # part2("0006_001", "10", 'course')
 
-    part2("0006_001", "10", 'our')
+    part2("0004_6", "10", 'our')
