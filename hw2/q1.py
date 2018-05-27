@@ -74,6 +74,7 @@ def part2(input_name, example_name, source='course'):
     # now we have a list of channels, and per channel, we have a pyramid
 
     combined = p22_reconstruct_image(output_channels, bg_image, mask)
+    combined = np.clip(combined, a_min=0, a_max=255)
     iml = list()
     iml.append(input_image)
     iml.append(example_image)
