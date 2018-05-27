@@ -1,3 +1,7 @@
 .idea/
 *.ini
 *.pyc
+*.pyc
+hw2/hsv figures/value.png
+hw2/hsv figures/saturation.png
+hw2/hsv figures/hue.png
