@@ -26,7 +26,7 @@ model_path = pwd + '/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmen
 source_video_path = pwd + '/our_data/ariel.mp4'
 target_video_path = pwd + '/our_data/ariel_mask.avi' # OpenCV must have avi as output. https://github.com/ContinuumIO/anaconda-issues/issues/223#issuecomment-285523938
 
-skip_frames = 50
+skip_frames = 30
 
 
 def image_get_fg_mask(image):
@@ -61,6 +61,7 @@ def create_masked_video(src_video, res_video, skipframes=0):
         for j in range(skipframes):
             _, _ = video_reader.read()
         more_frames, frame = video_reader.read()
+
         if not more_frames:
             break
 
