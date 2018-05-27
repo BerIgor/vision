@@ -24,7 +24,10 @@ import pytorch_segmentation_detection.models.resnet_dilated as resnet_dilated
 
 model_path = pwd + '/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmentation/resnet_34_8s_68.pth'
 source_video_path = pwd + '/our_data/ariel.mp4'
-target_video_path = pwd + '/our_data/ariel_m.avi' # OpenCV must have avi as output. https://github.com/ContinuumIO/anaconda-issues/issues/223#issuecomment-285523938
+target_video_path = pwd + '/our_data/ariel_mask.avi' # OpenCV must have avi as output. https://github.com/ContinuumIO/anaconda-issues/issues/223#issuecomment-285523938
+
+skip_frames = 50
+
 
 def image_get_fg_mask(image):
     fcn = resnet_dilated.Resnet34_8s(num_classes=21)
@@ -40,7 +43,7 @@ def image_get_fg_mask(image):
     return mask
 
 
-def create_masked_video(src_video, trgt_video):
+def create_masked_video(src_video, res_video, skipframes=0):
     video_reader = cv.VideoCapture(src_video)
 
     more_frames, frame = video_reader.read()
@@ -48,32 +51,15 @@ def create_masked_video(src_video, trgt_video):
     cols = frame.shape[1]
 
     video_format = cv.VideoWriter_fourcc(*"XVID")
-    video_writer = cv.VideoWriter(trgt_video, video_format, 10, (rows,cols)) # In the constructor (column, row). However in video_writer.write its (row, column).
+    video_writer = cv.VideoWriter(res_video, video_format, 30, (rows, cols)) # In the constructor (column, row). However in video_writer.write its (row, column).
 
     i = 0
     while more_frames:
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
-        more_frames, frame = video_reader.read()
+        i += 1
+        print("Processing frame " + str(i))
+
+        for j in range(skipframes):
+            _, _ = video_reader.read()
         more_frames, frame = video_reader.read()
         if not more_frames:
             break
@@ -85,30 +71,23 @@ def create_masked_video(src_video, trgt_video):
         mask = image_get_fg_mask(frame)
 
         # Perform Morphological Open to remove noise
-        kernel = np.ones((10,10),np.uint8)
+        kernel = np.ones((10, 10), np.uint8)
         mask = cv.morphologyEx(mask, cv.MORPH_OPEN, kernel)
 
         masked = apply_mask(frame, mask)
+        # video_save_frame(masked, i)
         # Write segmented image to output video
         video_writer.write(masked)
-        print(i)
-        i += 1
 
     video_writer.release()
     print("DONE")
     return
 
 
-def video_to_frames(video_name):
-    video = cv.VideoCapture(video_name)
-    while video.isOpened():
-        ret, frame = video.read()
-        print(np.shape(frame))
-        # print(ret)
-        break
-        # if key == ord('q'):
-        #    break
-    return frame
+def video_save_frame(frame, frame_number):
+    path = 'our_data/video_frames/' + str(frame_number) + '.jpg'
+    cv.imwrite(path, frame)
+    return
 
 
 def prep_image(image):
@@ -144,6 +123,6 @@ if __name__ == "__main__":
     # mask = image_get_fg_mask(frame)
     # cvshow("mask", mask)
     # masked = apply_mask(frame, mask)
-    create_masked_video(source_video_path, target_video_path)
+    create_masked_video(source_video_path, target_video_path, skipframes=skip_frames)
     # cvshow("after mask applied", masked)
 
