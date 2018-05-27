@@ -1,18 +1,11 @@
 import cv2 as cv
 import numpy as np
-import matplotlib.pyplot as plt
-# import torchvision as tv
-# import torchvision.transforms as transforms
-# from torch.autograd import Variable
-from PIL import Image
-
 import sys, os
 import torch
 
-# Prepare paths
-pwd = os.getcwd().replace('\\','//')
-q3 = pwd + '/q3'
 
+# Prepare and append source paths, so local torchvision fork is used
+pwd = os.getcwd().replace('\\','//')
 sys.path.append(pwd + '/q3')
 sys.path.append(pwd + '/q3/pytorch_segmentation_detection/')
 sys.path.insert(0, pwd + '/q3/vision/')
@@ -21,18 +14,7 @@ from torchvision import transforms
 from torch.autograd import Variable
 import pytorch_segmentation_detection.models.resnet_dilated as resnet_dilated
 
-
-model_path = pwd + '/q3/pytorch_segmentation_detection/recipes/pascal_voc/segmentation/resnet_34_8s_68.pth'
-source_video_path = pwd + '/our_data/ariel.mp4'
-target_video_path = pwd + '/our_data/ariel_mask.avi' # OpenCV must have avi as output. https://github.com/ContinuumIO/anaconda-issues/issues/223#issuecomment-285523938
-
-skip_frames = 30
-
-
-def image_get_fg_mask(image):
-
-    fcn = resnet_dilated.Resnet34_8s(num_classes=21)
-    fcn.load_state_dict(torch.load(model_path, map_location=lambda storage, loc: storage))
+def image_get_fg_mask(image, fcn):
     fcn.eval()
     image = prep_image(image)
     nn_result = fcn(image)
@@ -44,7 +26,7 @@ def image_get_fg_mask(image):
     return mask
 
 
-def create_masked_video(src_video, res_video, skipframes=0):
+def create_masked_video(fcn, src_video, res_video, skipframes=0):
     video_reader = cv.VideoCapture(src_video)
 
     more_frames, frame = video_reader.read()
@@ -69,18 +51,8 @@ def create_masked_video(src_video, res_video, skipframes=0):
         # Correcting frame rotation
         frame = np.transpose(frame, (1, 0, 2))
 
-        # # TODO - Ariel - finding a distinctive value for the bg using hsv
-        # frame_hsv = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
-        #
-        # # the histogram of the data
-        # titles = ['Hue','Staturation','Value']
-        # num_bins = 50
-        # for i in range (0,3):
-        #     n, bins, patches = plt.hist(frame_hsv[:,:,i], num_bins, facecolor='blue', alpha=0.5)
-        #     plt.show()
-
         # Segment and remove background from video
-        mask = image_get_fg_mask(frame)
+        mask = image_get_fg_mask(frame, fcn)
 
         # Perform Morphological Open to remove noise
         kernel = np.ones((10, 10), np.uint8)
@@ -129,12 +101,38 @@ def apply_mask(image, mask):
 
 if __name__ == "__main__":
     print("Welcome to q3")
+
+    # Initialization
+    model_path = pwd + '/our_data/resnet_34_8s_68.pth'
+    source_video_path = pwd + '/our_data/ariel.mp4'
+    target_video_path = pwd + '/our_data/ariel_mask.avi'  # OpenCV must have avi as output. https://github.com/ContinuumIO/anaconda-issues/issues/223#issuecomment-285523938
+    skip_frames = 15
+
+    # Create and load weights to pre-trained Resnet-34 model:
+    from pathlib import Path
+    import urllib.request
+
+    my_file = Path(model_path)
+    if not my_file.is_file():
+        # If weights file doesn't exist, download it from dropbox
+        print("Weights file doesn't exist. Downloading...")
+        url = "https://www.dropbox.com/s/91wcu6bpqezu4br/resnet_34_8s_68.pth?dl=1"
+        u = urllib.request.urlopen(url)
+        data = u.read()
+        u.close()
+
+        with open(model_path, "wb") as f:
+            f.write(data)
+    ##
+    fcn = resnet_dilated.Resnet34_8s(num_classes=21)
+    fcn.load_state_dict(torch.load(model_path, map_location=lambda storage, loc: storage))
+
     # frame = video_to_frames(video_path)
     # frame = cv.imread('our_data/GAzE2.jpeg')
     # nn_test(frame)
     # mask = image_get_fg_mask(frame)
     # cvshow("mask", mask)
     # masked = apply_mask(frame, mask)
-    create_masked_video(source_video_path, target_video_path, skipframes=skip_frames)
+    create_masked_video(fcn, source_video_path, target_video_path, skipframes=skip_frames)
     # cvshow("after mask applied", masked)
 

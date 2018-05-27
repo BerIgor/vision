@@ -243,7 +243,7 @@ class Resnet34_8s(nn.Module):
         # layer and get the output stride of 8
         resnet34_8s = models.resnet34(fully_conv=True,
                                        pretrained=True,
-                                       output_stride=4,
+                                       output_stride=8,
                                        remove_avg_pool_layer=True)
         
         # Randomly initialize the 1x1 Conv scoring layer
