@@ -27,6 +27,7 @@ source_video_path = pwd + '/our_data/ariel.mp4'
 target_video_path = pwd + '/our_data/ariel_m.avi' # OpenCV must have avi as output. https://github.com/ContinuumIO/anaconda-issues/issues/223#issuecomment-285523938
 
 def image_get_fg_mask(image):
+
     fcn = resnet_dilated.Resnet34_8s(num_classes=21)
     fcn.load_state_dict(torch.load(model_path, map_location=lambda storage, loc: storage))
     fcn.eval()
@@ -80,6 +81,16 @@ def create_masked_video(src_video, trgt_video):
 
         # Correcting frame rotation
         frame = np.transpose(frame, (1, 0, 2))
+
+        # # TODO - Ariel - finding a distinctive value for the bg using hsv
+        # frame_hsv = cv.cvtColor(frame,cv.COLOR_BGR2HSV)
+        #
+        # # the histogram of the data
+        # titles = ['Hue','Staturation','Value']
+        # num_bins = 50
+        # for i in range (0,3):
+        #     n, bins, patches = plt.hist(frame_hsv[:,:,i], num_bins, facecolor='blue', alpha=0.5)
+        #     plt.show()
 
         # Segment and remove background from video
         mask = image_get_fg_mask(frame)
