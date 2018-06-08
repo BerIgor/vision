@@ -3,10 +3,10 @@ import cv2 as cv
 import math
 import numpy as np
 
+from hw3 import *
 
 # Globals
 pwd = os.getcwd().replace('\\','//')
-
 
 
 def get_frames_uniform(video_path, number_of_frames):
@@ -28,14 +28,12 @@ def get_frames_uniform(video_path, number_of_frames):
 # output: void
 def q1_make_video(output_video_path, frames, frame_duration, fps=30):
     number_of_frames = fps*frame_duration
-    print(number_of_frames)
 
     rows = frames[0].shape[0]
     cols = frames[0].shape[1]
     video_format = cv.VideoWriter_fourcc(*"XVID")
     video_writer = cv.VideoWriter(output_video_path, video_format, fps, (cols, rows)) # In the constructor (column, row). However in video_writer.write its (row, column).
     for frame in frames:
-        print(np.shape(frame))
         for i in range(number_of_frames):
             video_writer.write(frame)
     video_writer.release()
@@ -45,5 +43,11 @@ if __name__ == "__main__":
     print("Welcome to hw3")
     source_video_path = pwd + '/our_data/ariel.mp4'
     frame_list = get_frames_uniform(source_video_path, 6)
-    result_video_path = pwd + '/our_data/result.avi'
-    q1_make_video(result_video_path, frame_list, 3)
+
+    image = frame_list[0]
+    image = q2.prep_image_for_harris(image)
+    res = q2.harris_detect(image)
+    utils.cvshow("Test", res)
+
+    # result_video_path = pwd + '/our_data/result.avi'
+    # q1_make_video(result_video_path, frame_list, 3)
