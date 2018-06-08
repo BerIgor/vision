@@ -49,14 +49,14 @@ if __name__ == "__main__":
     # image[res > 0.0001 * res.max()] = [0, 0, 255]
     # utils.cvshow("result", res)
     utils.cvshow("Harris", image_harris)
-    image_harris_nms = utils.non_maximum_suppression(image_harris,64)
+    image_harris_nms,plist = utils.non_maximum_suppression(image_harris,64)
     # Check number of points after nms
-    # unique, counts = np.unique(image_harris_nms, return_counts=True)
-    # print(dict(zip(unique, counts)))
+    unique, counts = np.unique(image_harris_nms, return_counts=True)
+    print(dict(zip(unique, counts)))
     image[image_harris_nms==np.max(image_harris_nms)] = [0, 0, 255]
     utils.cvshow("Harris after NMS", image)
     # plist is returned from nms image - ariel TODO
-    plist = [(20,20), (90,90), (300,300), (300,400), (50, 270), (270,400), (300, 300)]
+    # plist = [(20,20), (90,90), (300,300), (300,400), (50, 270), (270,400), (300, 300)]
     q3.mark_points(image, plist)
     utils.cvshow("marked", q3.mark_points(image, plist))
 
