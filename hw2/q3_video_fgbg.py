@@ -59,7 +59,6 @@ def create_masked_video(fcn, src_video, res_video, skipframes=0):
         mask = cv.morphologyEx(mask, cv.MORPH_OPEN, kernel)
 
         masked = apply_mask(frame, mask)
-        # video_save_frame(masked, i)
         # Write segmented image to output video
         video_writer.write(masked)
 
@@ -127,12 +126,4 @@ if __name__ == "__main__":
     fcn = resnet_dilated.Resnet34_8s(num_classes=21)
     fcn.load_state_dict(torch.load(model_path, map_location=lambda storage, loc: storage))
 
-    # frame = video_to_frames(video_path)
-    # frame = cv.imread('our_data/GAzE2.jpeg')
-    # nn_test(frame)
-    # mask = image_get_fg_mask(frame)
-    # cvshow("mask", mask)
-    # masked = apply_mask(frame, mask)
     create_masked_video(fcn, source_video_path, target_video_path, skipframes=skip_frames)
-    # cvshow("after mask applied", masked)
-
