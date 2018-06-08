@@ -44,14 +44,15 @@ if __name__ == "__main__":
     source_video_path = pwd + '/our_data/ariel.mp4'
     frame_list = get_frames_uniform(source_video_path, 6)
 
-    image = frame_list[0]
-    image_harris = q2.harris_detect(q2.prep_image_for_harris(image))
+    #image = frame_list[0]
+    #image_harris = q2.harris_detect(q2.prep_image_for_harris(image))
     # image[res > 0.0001 * res.max()] = [0, 0, 255]
     # utils.cvshow("result", res)
-    utils.cvshow("Harris", image_harris)
-    plist = [(20,20), (90,90), (300,300), (300,400), (50, 270), (270,400), (300, 300)]
-    q3.mark_points(image, plist)
-    utils.cvshow("marked", q3.mark_points(image, plist))
+    #utils.cvshow("Harris", image_harris)
+    #plist = [(20,20), (90,90), (300,300), (300,400), (50, 270), (270,400), (300, 300)]
+    #q3.mark_points(image, plist)
+    #utils.cvshow("marked", q3.mark_points(image, plist))
+    q4.get_transformation()
     # ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
 
     # result_video_path = pwd + '/our_data/result.avi'
