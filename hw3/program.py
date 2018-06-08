@@ -50,8 +50,9 @@ if __name__ == "__main__":
     # utils.cvshow("result", res)
     utils.cvshow("Harris", image_harris)
     image_harris_nms = utils.non_maximum_suppression(image_harris,64)
-    unique, counts = np.unique(image_harris_nms, return_counts=True)
-    print(dict(zip(unique, counts)))
+    # Check number of points after nms
+    # unique, counts = np.unique(image_harris_nms, return_counts=True)
+    # print(dict(zip(unique, counts)))
     image[image_harris_nms==np.max(image_harris_nms)] = [0, 0, 255]
     utils.cvshow("Harris after NMS", image)
 
