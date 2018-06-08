@@ -46,9 +46,16 @@ if __name__ == "__main__":
 
     image = frame_list[0]
     image_harris = q2.harris_detect(q2.prep_image_for_harris(image))
-    # image[res > 0.0001 * res.max()] = [0, 0, 255]
+    # image[image_harris > image_harris * res.max()] = [0, 0, 255]
     # utils.cvshow("result", res)
     utils.cvshow("Harris", image_harris)
+    image_harris_nms = utils.non_maximum_suppression(image_harris,64)
+    unique, counts = np.unique(image_harris_nms, return_counts=True)
+    print(dict(zip(unique, counts)))
+    image[image_harris_nms==np.max(image_harris_nms)] = [0, 0, 255]
+    utils.cvshow("Harris after NMS", image)
+
+
     # ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
 
     # result_video_path = pwd + '/our_data/result.avi'
