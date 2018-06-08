@@ -45,9 +45,11 @@ if __name__ == "__main__":
     frame_list = get_frames_uniform(source_video_path, 6)
 
     image = frame_list[0]
-    image = q2.prep_image_for_harris(image)
-    res = q2.harris_detect(image)
-    utils.cvshow("Test", res)
+    image_harris = q2.harris_detect(q2.prep_image_for_harris(image))
+    # image[res > 0.0001 * res.max()] = [0, 0, 255]
+    # utils.cvshow("result", res)
+    utils.cvshow("Harris", image_harris)
+    # ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
 
     # result_video_path = pwd + '/our_data/result.avi'
     # q1_make_video(result_video_path, frame_list, 3)
