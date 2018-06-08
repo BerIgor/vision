@@ -52,7 +52,14 @@ if __name__ == "__main__":
     #plist = [(20,20), (90,90), (300,300), (300,400), (50, 270), (270,400), (300, 300)]
     #q3.mark_points(image, plist)
     #utils.cvshow("marked", q3.mark_points(image, plist))
-    q4.get_transformation()
+
+    points = list()
+    points.append([(1, 1), (2, 2), (3, 3)])
+    points.append([(2, 2), (3, 3), (4, 4)])
+    res_list = q4.get_seq_transformation(points)
+    a, b = res_list[0]
+    print(a)
+    print(b)
     # ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
 
     # result_video_path = pwd + '/our_data/result.avi'
