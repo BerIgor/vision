@@ -40,19 +40,32 @@ def q1_make_video(output_video_path, frames, frame_duration, fps=30):
 
 
 if __name__ == "__main__":
+    # close all open windows
+    cv.destroyAllWindows()
     print("Welcome to hw3")
     source_video_path = pwd + '/our_data/ariel.mp4'
     frame_list = get_frames_uniform(source_video_path, 6)
 
-    #image = frame_list[0]
-    #image_harris = q2.harris_detect(q2.prep_image_for_harris(image))
-    # image[res > 0.0001 * res.max()] = [0, 0, 255]
-    # utils.cvshow("result", res)
-    #utils.cvshow("Harris", image_harris)
-    #plist = [(20,20), (90,90), (300,300), (300,400), (50, 270), (270,400), (300, 300)]
-    #q3.mark_points(image, plist)
-    #utils.cvshow("marked", q3.mark_points(image, plist))
+    image = frame_list[0]
+    # Find edges using Harris
+    # image_harris_nms = q2.harris_and_nms(image)
+    # plist = [(20,20), (90,90), (300,300), (300,400), (50, 270), (270,400), (350, 350)]
+    # q3.mark_points(image, plist)
+    # utils.cvshow("marked", q3.mark_points(image, plist))
 
+    # Choose matching feature points
+    # q3.choose_match_points_for_all_frames(frame_list)
+    
+    # Matching of feature points, chosen manually:
+    ref_feature_points = [(297, 187), (303, 236), (447, 92), (421, 309), (459, 360), (505, 154)]
+    frame1_feature_points = [(304, 148), (308, 199), (459, 38), (419, 256), (450, 299), (510, 116)]
+    frame2_feature_points = [(280, 225), (283, 263), (439, 90), (390, 302), (424, 357), (503, 166)]
+    frame3_feature_points = [(235, 234), (239, 297), (399, 97), (363, 341), (393, 387), (459, 193)]
+    frame4_feature_points = [(238, 233), (243, 268), (412, 71), (361, 314), (391, 358), (468, 179)]
+    frame5_feature_points = [(244, 239), (245, 292), (422, 85), (360, 318), (401, 382), (470, 209)]
+    frame6_feature_points = [(229, 265), (234, 299), (411, 74), (348, 298), (387, 364), (459, 209)]
+
+    #
     points = list()
     points.append([(1, 1), (2, 2), (3, 3)])
     points.append([(2, 2), (3, 3), (4, 4)])
@@ -64,3 +77,5 @@ if __name__ == "__main__":
 
     # result_video_path = pwd + '/our_data/result.avi'
     # q1_make_video(result_video_path, frame_list, 3)
+
+

@@ -3,7 +3,8 @@ import numpy as np
 
 
 def cvshow(title, im):
-    cv.namedWindow(title, cv.WINDOW_NORMAL)
+    # cv.namedWindow(title, cv.WINDOW_NORMAL)
+    cv.namedWindow(title)
     cv.imshow(title, im)
     cv.waitKey()
 
@@ -19,7 +20,6 @@ def non_maximum_suppression(img, win_size):
             y_next = y + win_size if (y + win_size <= img.shape[0]) else img.shape[0]
             x_next = x + win_size if (x + win_size <= img.shape[1]) else img.shape[1]
             img_win = img[y:y_next, x:x_next]
-            # cvshow("original win",img_win)
             # NMS on window:
             win_max = np.max(img_win)
             for j in range(img_win.shape[0]):
@@ -30,11 +30,8 @@ def non_maximum_suppression(img, win_size):
                     else:
                         img_win[j, k] = 0
 
-            #ret, res = cv.threshold(img_win, 0.99*win_max, img_max, cv.THRESH_BINARY)
-            # cvshow("nms win",res)
             suppressed_img[y:y_next, x:x_next] = img_win
 
-    cvshow("After nms", suppressed_img)
     return suppressed_img, max_points_list
 
 
