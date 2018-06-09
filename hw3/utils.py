@@ -34,4 +34,3 @@ def non_maximum_suppression(img, win_size):
 
     return suppressed_img, max_points_list
 
-
