@@ -69,15 +69,13 @@ if __name__ == "__main__":
     points = list()
     # points.append([(1, 1), (2, 2), (3, 3)])
     # points.append([(2, 2), (3, 3), (4, 4)])
-    points.append(ref_feature_points[0:2])
-    points.append(frame1_feature_points[0:2])
+    points.append(ref_feature_points)
+    points.append(frame1_feature_points)
 
     res_list = q4.get_seq_transformation(points)
     a, b = res_list[0]
-    print(a)
-    print(b)
 
-    points_transformed = q4.test_transformation(ref_feature_points[3:], a, b)
+    points_transformed = q4.test_transformation2(np.vstack(ref_feature_points[0]), a, b)
     print("Transformed points:")
     print(points_transformed)
     # ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
