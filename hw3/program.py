@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # Choose matching feature points
     # q3.choose_match_points_for_all_frames(frame_list)
-    
+
     # Matching of feature points, chosen manually:
     ref_feature_points = [(297, 187), (303, 236), (447, 92), (421, 309), (459, 360), (505, 154)]
     frame1_feature_points = [(304, 148), (308, 199), (459, 38), (419, 256), (450, 299), (510, 116)]
@@ -65,14 +65,21 @@ if __name__ == "__main__":
     frame5_feature_points = [(244, 239), (245, 292), (422, 85), (360, 318), (401, 382), (470, 209)]
     frame6_feature_points = [(229, 265), (234, 299), (411, 74), (348, 298), (387, 364), (459, 209)]
 
-    #
+    # Test q4 - finding affine transformation
     points = list()
-    points.append([(1, 1), (2, 2), (3, 3)])
-    points.append([(2, 2), (3, 3), (4, 4)])
+    # points.append([(1, 1), (2, 2), (3, 3)])
+    # points.append([(2, 2), (3, 3), (4, 4)])
+    points.append(ref_feature_points[0:2])
+    points.append(frame1_feature_points[0:2])
+
     res_list = q4.get_seq_transformation(points)
     a, b = res_list[0]
     print(a)
     print(b)
+
+    points_transformed = q4.test_transformation(ref_feature_points[3:], a, b)
+    print("Transformed points:")
+    print(points_transformed)
     # ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
 
     # result_video_path = pwd + '/our_data/result.avi'

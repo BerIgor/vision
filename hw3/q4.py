@@ -40,3 +40,11 @@ def test_transformation():
     # points_transformed = [[2, 2, 1], [3, 3, 1], [4, 4, 1]]
     a, b = get_transformation(points_reference, points_transformed)
     print(np.dot(a, np.array([[3], [3]])) + b)
+
+
+def test_transformation(points_reference, a, b):
+   transformd_points = list()
+   for p_ref in points_reference:
+       transformd_points.append(np.dot(a, p_ref) + b)
+   return transformd_points
+
