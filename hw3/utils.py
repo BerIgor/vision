@@ -37,4 +37,3 @@ def non_maximum_suppression(img, win_size):
     cvshow("After nms", suppressed_img)
     return suppressed_img, max_points_list
 
-
