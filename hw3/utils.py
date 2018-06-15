@@ -21,13 +21,13 @@ def get_frames_points():
 
 def transform(coordinates, a, b):
     """
-
+    The coordinates used is (row, column)
     :param coordinates: N coordinates in a matrix with shape 2xN
     :param a: the a transformation matrix
     :param b: the b transformation matrix
     :return: a 2xN array of the transformed coordinates
     """
-    return np.dot(a, coordinates) + b
+    return np.dot(a, np.vstack(coordinates)) + b
 
 
 def cvshow(title, im):

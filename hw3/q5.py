@@ -1,19 +1,15 @@
 import numpy as np
 from scipy import interpolate
 from hw3 import utils
-
+from scipy.interpolate import RegularGridInterpolator
 
 def perform(frames, transformations):
-    print("in q5.perform: number of frames: " + str(len(frames)))
     stabilized_images = list()
     for i in range(len(frames)):
-        print("handling frame: " + str(i))
         frame = frames[i]
         a, b = transformations[i]
         stabilized_image = stabilize_image(frame, a, b)
         stabilized_images.append(stabilized_image)
-        print(np.shape(stabilized_image))
-    print("in q5.perform: number of stabilized frames " + str(len(stabilized_images)))
     return stabilized_images
 
 
@@ -25,42 +21,63 @@ def stabilize_image(image, a, b):
     :param b: is the b matrix of an affine transformation
     :return: a stabilized image
     """
-    stabilized_image = np.zeros(np.shape(image))
-
-    y_cord = np.array(list(range(stabilized_image.shape[0])))
-    x_cord = np.array(list(range(stabilized_image.shape[1])))
-    stabilized_coordinates = np.array([[x_cord], [y_cord]])
-    print(stabilized_coordinates)
-    print(np.shape(stabilized_coordinates))
-    # Get the transformed coordinates: the coordinates in the ref image
-
-
-    source_coordinates = utils.transform(stabilized_coordinates, a, b)
-    print(np.shape(source_coordinates))
-    for layer_index in range(image.shape[-1]):
-        interpolation = interpolate.RectBivariateSpline(x, y, image[:, :, layer_index])
-
-#        stabilized_image[:, :, layer_index] = interpolate(x_transformed, y_transformed)
-
-    exit()
-    x_coordinates = list()
-    y_coordinates = list()
-    for x in range(stabilized_image.shape[0]):
-        for y in range(stabilized_image.shape[1]):
-            current_coordinates = np.array([[x], [y]])
-            transformed_coordinates = np.add(np.dot(a, current_coordinates), b)
-            source_x = transformed_coordinates.item(0)
-            source_y = transformed_coordinates.item(1)
-            x_coordinates.append(source_x)
-            y_coordinates.append(source_y)
-
-    x = range(stabilized_image.shape[0])
-    y = range(stabilized_image.shape[1])
-
-    for layer_index in range(image.shape[-1]):
-        # utils.cvshow("LAYER", image[:, :, layer_index])
-        # stabilized_image = interpolate.interp2d(x_coordinates, y_coordinates, image[:, :, layer_index])
-        interpolation = interpolate.RectBivariateSpline(x, y, image[:, :, layer_index])
-        stabilized_image[:, :, layer_index] = interpolate()
-
+    stabilized_image = interpolate_image_under_transformation(image, a, b)
     return stabilized_image
+
+
+def interpolate_image_under_transformation(ref_image, a, b):
+    req_image = np.zeros(np.shape(ref_image))
+
+    rows = np.array(list(range(ref_image.shape[0])))
+    cols = np.array(list(range(ref_image.shape[1])))
+    stabilized_coordinates = np.array([[rows], [cols]])
+    reference_coordinates = utils.transform(stabilized_coordinates, a, b)
+    interpolator = RegularGridInterpolator((x, y, z), data)
+
+    stabilized_r = list()
+    stabilized_c = list()
+    stabilized_coordinates = list()
+    for l in range(ref_image.shape[2]):
+        for r in range(ref_image.shape[0]):
+            for c in range(ref_image.shape[1]):
+                # This is row stacked, so we need to revert this when we get the values back
+                current_coordinates = np.array([[r], [c]])
+                stabilized_coordinates.append(current_coordinates)
+
+        reference_coordinates = np.add(np.dot(a, stabilized_coordinates), b)
+        RegularGridInterpolator(np.vstack(reference_coordinates). )
+
+
+
+def interpolate_image_under_transformation2(ref_image, a, b):
+    req_image = np.zeros(np.shape(ref_image))
+
+    for layer in range((np.shape(req_image))[2]):
+        for r, c in [(r, c) for r in range(req_image.shape[0]) for c in range(req_image.shape[1])]:
+            req_point = utils.transform((r, c), a, b)
+            req_c, req_r = req_point
+
+            req_r = np.clip(req_r, 0, (np.shape(req_image))[0]-1)
+            req_c = np.clip(req_c, 0, (np.shape(req_image))[1]-1)
+            req_image[r, c, layer] = interpolate_point(ref_image[:, :, layer], (req_r, req_c))
+    return req_image
+
+
+def interpolate_point(ref_image, req_point):
+    req_r, req_c = req_point
+    req_r_low = np.int(np.floor(req_r))
+    req_c_low = np.int(np.floor(req_c))
+    req_r_high = np.int(np.ceil(req_r))
+    req_c_high = np.int(np.ceil(req_c))
+
+    # Legalize points
+    req_r_low = np.clip(req_r_low, 0, (np.shape(ref_image))[0]-1)
+    req_c_low = np.clip(req_c_low, 0, (np.shape(ref_image))[1]-1)
+    req_r_high = np.clip(req_r_high, 0, (np.shape(ref_image))[0]-1)
+    req_c_high = np.clip(req_c_high, 0, (np.shape(ref_image))[1]-1)
+
+    r1 = (req_c_high - req_c)*ref_image[req_r_low, req_c_low] + (req_c - req_c_low)*ref_image[req_r_low, req_c_high]
+    r2 = (req_c_high - req_c)*ref_image[req_r_high, req_c_low] + (req_c - req_c_low)*ref_image[req_r_high, req_c_high]
+    value = (req_r_high - req_r)*r1 + (req_r - req_r_low)*r2
+
+    return value

@@ -34,10 +34,8 @@ def q1_make_video(output_video_path, frames, frame_duration, fps=30):
     video_format = cv.VideoWriter_fourcc(*"XVID")
     video_writer = cv.VideoWriter(output_video_path, video_format, fps, (cols, rows)) # In the constructor (column, row). However in video_writer.write its (row, column).
     for frame in frames:
-        print("Frame shape:")
-        print(np.shape(frame))
         for i in range(number_of_frames):
-            video_writer.write(frame)
+            video_writer.write(np.uint8(frame))
     video_writer.release()
 
 
@@ -48,12 +46,14 @@ if __name__ == "__main__":
     source_video_path = pwd + '/our_data/ariel.mp4'
     frame_list = get_frames_uniform(source_video_path, 7)
 
+    arr = np.array([[1, 2], [3, 4]])
+    print(arr[1, 0])
+
     # q3.perform(frame_list)
     transformation_list = q4.get_seq_transformation(utils.get_frames_points())
     stabilized_images = q5.perform(frame_list, transformation_list)
     print(len(stabilized_images))
     stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
-    utils.cvshow("STAB0", stabilized_images[0])
     q1_make_video(stabilized_video_path, stabilized_images, 2)
 
     # Find edges using Harris
