@@ -75,9 +75,14 @@ if __name__ == "__main__":
     res_list = q4.get_seq_transformation(points)
     a, b = res_list[0]
 
-    points_transformed = q4.test_transformation2(np.vstack(ref_feature_points[0]), a, b)
-    print("Transformed points:")
-    print(points_transformed)
+    for ref_point in ref_feature_points[3:]:
+        print("Reference Point")
+        print(ref_point)
+        points_transformed = q4.test_transformation2(np.vstack(ref_point), a, b)
+        print("Transformed points:")
+        print((tuple(np.squeeze(points_transformed))))
+
+    # Test q5 - Stabillization
     # ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
 
     # result_video_path = pwd + '/our_data/result.avi'

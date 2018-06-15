@@ -43,8 +43,8 @@ def test_transformation():
 
 
 def test_transformation2(points_reference, a, b):
-    print(a)
-    print(points_reference)
-    print(b)
+    # print(a)
+    # print(points_reference)
+    # print(b)
     return np.dot(a, points_reference) + b
 
