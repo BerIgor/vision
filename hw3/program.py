@@ -49,6 +49,13 @@ if __name__ == "__main__":
     arr = np.array([[1, 2], [3, 4]])
     print(arr[1, 0])
 
+    points_to_mark = utils.get_frames_points()
+    for i in range(len(frame_list)):
+        frame = frame_list[i]
+        points = points_to_mark[i]
+        marked_image = q3.mark_points(frame, points)
+        utils.cvshow("FRAME", marked_image)
+
     # q3.perform(frame_list)
     transformation_list = q4.get_seq_transformation(utils.get_frames_points())
     stabilized_images = q5.perform(frame_list, transformation_list)
