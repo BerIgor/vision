@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-from hw3 import utils, q2
+from hw3 import utils
 
 red = (0, 0, 255)
 green = (0, 255, 0)
@@ -8,6 +8,17 @@ blue = (255, 0, 0)
 colors = [red, green, blue]
 
 max_points = 6
+
+
+def perform(frames):
+    iml = list()
+    frames_points = utils.get_frames_points()
+    for i in range(len(frames)):
+        frame = frames[i]
+        points = frames_points[i]
+        marked_frame = mark_points(frame, points)
+        iml.append(marked_frame)
+    utils.display_images(iml)
 
 
 def mark_points(image, points):

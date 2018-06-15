@@ -22,10 +22,12 @@ def get_seq_transformation(points):
     """
     Calculates the transformation from the first point list (points[0]) to every subsequent point list
     :param points: a list of lists, each inner list consists of point tuples
-    :return: a list of transformation matrices, each is a tuple
+    :return: a list of transformation matrices, each is a tuple (a,b), including the id transform from ref to ref
     """
     transformations = list()
+    id_transformation = (np.diag([1, 1]), np.array([[0], [0]]))
     reference = points[0]
+    transformations.append(id_transformation)
     for frame_points in points[1:]:
         current_transformation = get_transformation(reference, frame_points)
         transformations.append(current_transformation)

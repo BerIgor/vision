@@ -12,9 +12,9 @@ pwd = os.getcwd().replace('\\','//')
 def get_frames_uniform(video_path, number_of_frames):
     video_reader = cv.VideoCapture(video_path)
     length = video_reader.get(cv.CAP_PROP_FRAME_COUNT)
-    interval = math.floor(length/(number_of_frames+1))
+    interval = math.floor(length/number_of_frames)
     frames = list()
-    for i in range(number_of_frames+1):
+    for i in range(number_of_frames):
         video_reader.set(cv.CAP_PROP_POS_FRAMES, i*interval)
         _, frame = video_reader.read()
         frames.append(frame)
@@ -34,6 +34,8 @@ def q1_make_video(output_video_path, frames, frame_duration, fps=30):
     video_format = cv.VideoWriter_fourcc(*"XVID")
     video_writer = cv.VideoWriter(output_video_path, video_format, fps, (cols, rows)) # In the constructor (column, row). However in video_writer.write its (row, column).
     for frame in frames:
+        print("Frame shape:")
+        print(np.shape(frame))
         for i in range(number_of_frames):
             video_writer.write(frame)
     video_writer.release()
@@ -44,9 +46,16 @@ if __name__ == "__main__":
     cv.destroyAllWindows()
     print("Welcome to hw3")
     source_video_path = pwd + '/our_data/ariel.mp4'
-    frame_list = get_frames_uniform(source_video_path, 6)
+    frame_list = get_frames_uniform(source_video_path, 7)
 
-    image = frame_list[0]
+    # q3.perform(frame_list)
+    transformation_list = q4.get_seq_transformation(utils.get_frames_points())
+    stabilized_images = q5.perform(frame_list, transformation_list)
+    print(len(stabilized_images))
+    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
+    utils.cvshow("STAB0", stabilized_images[0])
+    q1_make_video(stabilized_video_path, stabilized_images, 2)
+
     # Find edges using Harris
     # image_harris_nms = q2.harris_and_nms(image)
     # plist = [(20,20), (90,90), (300,300), (300,400), (50, 270), (270,400), (350, 350)]
