@@ -22,7 +22,8 @@ def stabilize_image(image, a, b):
     :param b: is the b matrix of an affine transformation
     :return: a stabilized image
     """
-    stabilized_image = interpolate_image_under_transformation(image, a, b)
+    print(str(a) + " " + str(b))
+    stabilized_image = interpolate_image_under_transformation3(image, a, b)
     return stabilized_image
 
 
