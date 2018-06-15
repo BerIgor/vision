@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+from hw3 import q2, utils
 
 # TODO: Complete q6: show 10 automatically matched points
 
@@ -16,15 +17,23 @@ def match_images(ref_image, ref_points, target_image, target_points, search_wind
     :return:
     """
     matched_points = list()
+    filtered_ref_points = list()
     for ref_point in ref_points:
         points_in_window = filter_points_not_in_window(ref_point, target_points, search_window)
-        template = get_sub_image(ref_image, ref_point, match_window)
-        best_point = get_best_matching_point(template, target_image, points_in_window)
+        if not points_in_window:
+            # Cancel reference feature points that no match was found for them
+            continue
+        filtered_ref_points.append(ref_point)
+        if len(points_in_window) == 1:
+            best_point = points_in_window[0]
+        else:
+            template = get_sub_image(ref_image, ref_point, match_window)
+            # utils.cvshow("template", template)
+            best_point = get_best_matching_point(template, target_image, points_in_window, match_window)
         matched_points.append(best_point)
-    return matched_points
+    return filtered_ref_points, matched_points
 
-
-def get_best_matching_point(template, target_image, points):
+def get_best_matching_point(template, target_image, points, match_window):
     """
     Gets the point which is the best SSD match to template
     :param template: is the template to use
@@ -32,9 +41,9 @@ def get_best_matching_point(template, target_image, points):
     :param points: is a list of points (x,y)
     :return: returns a point with minimal SSD score
     """
-    ssd_list = calc_ssd_list(template, target_image, points)
+    ssd_list = calc_ssd_list(template, target_image, points, match_window)
     min_index = ssd_list.index(min(ssd_list))
-    return ssd_list[min_index]
+    return points[min_index]
 
 
 def calc_ssd_list(template, image, points, match_window):
@@ -47,11 +56,15 @@ def calc_ssd_list(template, image, points, match_window):
     :param match_window: (W in the assignment) is the window in which to search
     :return: returns a list with the minimal ssd values in each sub-image
     """
-    ssd = cv.matchTemplate(image, template, cv.TM_SQDIFF)
+    # ssd = cv.matchTemplate(image, template, cv.TM_SQDIFF)
     ssd_list = list()
     for point in points:
-        window = get_sub_image(ssd, point, match_window)
-        ssd_list.append(np.min(window))
+        # window = get_sub_image(ssd, point, match_window)
+        # ssd_list.append(np.min(window))
+        image_ssd_sub_win = get_sub_image(image, point, match_window)
+        ssd_score = cv.matchTemplate(image_ssd_sub_win, template, cv.TM_SQDIFF)
+        ssd_list.append(np.max(ssd_score)) # As it's calculated per window, min and max are the same
+
     return ssd_list
 
 
@@ -63,13 +76,16 @@ def get_sub_image(image, point, window_size):
     :param window_size: half the edge size of the window
     :return: a cut out from the image centered at point
     """
-    x, y = point
-    x_min = max(x - window_size, 0)
-    y_min = max(y - window_size, 0)
-    x_max = min(x + window_size, np.shape(image)[0])
-    y_max = min(y + window_size, np.shape(image)[1])
+    # utils.cvshow("original im", image)
+    col, row = point  # x is col, y is row
+    row_min = max(row - window_size, 0)
+    col_min = max(col - window_size, 0)
+    row_max = min(row + window_size, np.shape(image)[0])
+    col_max = min(col + window_size, np.shape(image)[1])
 
-    sub_image = image[x_min:x_max, y_min:y_max]
+    sub_image = image[row_min:row_max,col_min:col_max,:]
+    # utils.cvshow("sub im", sub_image)
+
     return sub_image
 
 
@@ -81,13 +97,12 @@ def point_is_in_window(ref_point, point, search_window_size):
     :param search_window_size: is half the length of an edge for the window
     :return:
     """
-    (ref_x, ref_y) = ref_point
-    (p_x, p_y) = point
+    ref_x, ref_y = ref_point
+    p_x, p_y = point
     x_dist = np.abs(ref_x - p_x)
     y_dist = np.abs(ref_y - p_y)
-    if x_dist <= search_window_size and y_dist <= search_window_size:
-        return True
-    return False
+    return (x_dist <= search_window_size and y_dist <= search_window_size)
+
 
 
 def filter_points_not_in_window(ref_point, points, window_size):
@@ -99,5 +114,28 @@ def filter_points_not_in_window(ref_point, points, window_size):
     :param window_size: is half the size of the edge of the desired window
     :return: a filtered list
     """
-    filtered_list = [point for point in points if point_is_in_window(ref_point, point, window_size) == True]
+    filtered_list = list()
+    for point in points:
+        if point_is_in_window(ref_point, point, window_size):
+            filtered_list.append(point)
     return filtered_list
+
+def perform_q6(ref_image,target_image):
+    """
+    Receives a reference image and a target image and returns 10 automatically matched points between them (composition of all sub functions)
+    :param ref_image: is the reference image
+    :param target_image: is the target image
+    :return: 2 lists of points. Pairs are matched by list index
+    """
+
+    # Window for optimal matching
+    nms_window = 50
+    search_win = 30  # L
+    ssd_win = 20  # W
+
+    # Extract feature points for both images:
+    ref_feature_points, _ = q2.harris_and_nms(ref_image, nms_window)
+    target_feature_points, _ = q2.harris_and_nms(target_image, nms_window)
+
+    return match_images(ref_image, ref_feature_points, target_image, target_feature_points, search_win, ssd_win)
+
