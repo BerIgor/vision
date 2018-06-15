@@ -3,7 +3,7 @@ import cv2 as cv
 import math
 import numpy as np
 
-from hw3 import utils, q2, q3, q4, q6
+from hw3 import *
 
 # Globals
 pwd = os.getcwd().replace('\\','//')
@@ -49,6 +49,19 @@ if __name__ == "__main__":
     arr = np.array([[1, 2], [3, 4]])
     print(arr[1, 0])
 
+    points_to_mark = utils.get_frames_points()
+    for i in range(len(frame_list)):
+        frame = frame_list[i]
+        points = points_to_mark[i]
+        marked_image = q3.mark_points(frame, points)
+        utils.cvshow("FRAME", marked_image)
+
+    # q3.perform(frame_list)
+    transformation_list = q4.get_seq_transformation(utils.get_frames_points())
+    stabilized_images = q5.perform(frame_list, transformation_list)
+    print(len(stabilized_images))
+    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
+    q1_make_video(stabilized_video_path, stabilized_images, 2)
 
 
     # Find edges using Harris

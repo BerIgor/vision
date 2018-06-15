@@ -3,6 +3,7 @@ from scipy import interpolate
 from hw3 import utils
 from scipy.interpolate import RegularGridInterpolator
 
+
 def perform(frames, transformations):
     stabilized_images = list()
     for i in range(len(frames)):
@@ -25,31 +26,90 @@ def stabilize_image(image, a, b):
     return stabilized_image
 
 
-def interpolate_image_under_transformation(ref_image, a, b):
+# TODO: This works, but you need to understand how
+def interpolate_image_under_transformation(image, a, b):
+    grid_x, grid_y = np.mgrid[range(image.shape[0]), range(image.shape[1])]
+    z = np.array([grid_x.flatten(), grid_y.flatten()])
+    zz = np.matmul(a, z) + b
+    grid_x_new = np.reshape(zz[0, :], grid_x.shape)
+    grid_y_new = np.reshape(zz[1, :], grid_y.shape)
+    points = np.random.rand(image.shape[0] * image.shape[1], 2)
+    points[:, 0] = grid_x_new.flatten()
+    points[:, 1] = grid_y_new.flatten()
+    img_stable = np.zeros(image.shape)
+    for j in range(3):
+        img_stable[:, :, j] = interpolate.griddata(points, image[:, :, j].flatten(), (grid_x, grid_y), method='linear')
+    img_stable = np.uint8(img_stable)
+    return img_stable
+
+
+def interpolate_image_under_transformation0(ref_image, a, b):
     req_image = np.zeros(np.shape(ref_image))
 
-    rows = np.array(list(range(ref_image.shape[0])))
-    cols = np.array(list(range(ref_image.shape[1])))
-    stabilized_coordinates = np.array([[rows], [cols]])
-    reference_coordinates = utils.transform(stabilized_coordinates, a, b)
-    interpolator = RegularGridInterpolator((x, y, z), data)
+    rows = np.arange(ref_image.shape[0])
+    cols = np.arange(ref_image.shape[1])
+    rv, cv = np.meshgrid(rows, cols, indexing='ij')
+
+    reference_coordinates = np.stack((rv, cv), axis=2)
+    # print(np.stack((rv, cv), axis=2))
+    print(reference_coordinates)
+    print(np.shape(reference_coordinates))
+    exit()
+    arr = np.reshape(reference_coordinates)
+    print(arr)
+
+    exit()
+    grid = list()
+    print(np.reshape(rv, (-1, 1)))
+    print(np.reshape(cv, (-1, 1)))
+    exit()
+    # for i in range(size(rv))
+    for r in np.reshape(rv, (-1, 1)):
+        print("r==" + str(r))
+        for c in np.reshape(cv, (-1, 1)):
+            continue
+    exit()
+
+    for l in range(ref_image.shape[2]):
+        current_layer = ref_image[:, :, l]
+        interpolator = RegularGridInterpolator((rows, cols), current_layer,
+                                               bounds_error=False, fill_value=0)
+        for r in range(current_layer.shape[0]):
+            for c in range(current_layer.shape[1]):
+                # This is row stacked, so we need to revert this when we get the values back
+                stabilised_coordinates = np.array([[r], [c]])
+                reference_coordinates = utils.transform(stabilised_coordinates, a, b)
+                req_image[r, c, l] = interpolator(reference_coordinates.transpose())
+
+    return req_image
+
+
+def interpolate_image_under_transformation2(ref_image, a, b):
+    req_image = np.zeros(np.shape(ref_image))
 
     stabilized_r = list()
     stabilized_c = list()
     stabilized_coordinates = list()
     for l in range(ref_image.shape[2]):
-        for r in range(ref_image.shape[0]):
-            for c in range(ref_image.shape[1]):
+        current_layer = ref_image[:, :, l]
+        for r in range(current_layer.shape[0]):
+            for c in range(current_layer.shape[1]):
                 # This is row stacked, so we need to revert this when we get the values back
                 current_coordinates = np.array([[r], [c]])
                 stabilized_coordinates.append(current_coordinates)
 
-        reference_coordinates = np.add(np.dot(a, stabilized_coordinates), b)
-        RegularGridInterpolator(np.vstack(reference_coordinates). )
+        stabilized_coordinates = np.transpose(np.squeeze(stabilized_coordinates, 2))
+        reference_coordinates = utils.transform(stabilized_coordinates, a, b)
+        print(reference_coordinates)
+        interpolator = RegularGridInterpolator(reference_coordinates, reference_coordinates, current_layer,
+                                               bounds_error=False, fill_value=0)
+        print(np.reshape(stabilized_coordinates, (1, -1)))
+        interpolated_ = interpolator(np.reshape(stabilized_coordinates, (1, -1)))
+        req_image[:, :, l] = interpolated_
 
 
-
-def interpolate_image_under_transformation2(ref_image, a, b):
+# this works
+def interpolate_image_under_transformation3(ref_image, a, b):
     req_image = np.zeros(np.shape(ref_image))
 
     for layer in range((np.shape(req_image))[2]):
