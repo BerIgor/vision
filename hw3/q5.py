@@ -49,7 +49,8 @@ def interpolate_image_under_transformation(image, a, b):
 def interpolate_image_under_transformation(image, a, b):
     grid_r, grid_c = np.mgrid[range(image.shape[0]), range(image.shape[1])]
     z = np.array([grid_r.flatten(), grid_c.flatten()])
-    zz = np.matmul(a, z) + b
+    ai = np.linalg.inv(a)
+    zz = np.matmul(ai, z - b)
     grid_r_new = np.reshape(zz[0, :], grid_r.shape)
     grid_c_new = np.reshape(zz[1, :], grid_c.shape)
     points = np.random.rand(image.shape[0] * image.shape[1], 2)

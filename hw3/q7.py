@@ -11,7 +11,11 @@ def calc_transform_ransac(ref_points, seq_points):
     indices = get_best_inlier_group_indices(ref_points, seq_points)
     ref_points_best = [ref_points[i] for i in indices]
     seq_points_best = [seq_points[i] for i in indices]
+
+    ref_points_best = utils.invert_points(ref_points_best)
+    seq_points_best = utils.invert_points(seq_points_best)
     print(str(ref_points_best) + " " + str(seq_points_best))
+
     return q4.get_transformation(ref_points_best, seq_points_best)
 
 

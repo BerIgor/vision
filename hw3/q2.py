@@ -26,6 +26,7 @@ def harris_and_nms(image, nms_window=30):
     """
 
     # Find edges using Harris
+    # print(image.shape)
     image_harris = harris_detect(prep_image_for_harris(image))
     # utils.cvshow("Harris", image_harris)
 

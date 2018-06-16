@@ -31,7 +31,7 @@ def match_images(ref_image, ref_points, target_image, target_points, search_wind
             # utils.cvshow("template", template)
             best_point = get_best_matching_point(template, target_image, points_in_window, match_window)
         matched_points.append(best_point)
-    print("ref points num: " + str(len(ref_points)) + "\nfiltered ref points num: " + str(len(filtered_ref_points))+ "\nAvg of feature points in matching window: " + str(sum(points_in_winow_num)/len(filtered_ref_points)))
+    # print("ref points num: " + str(len(ref_points)) + "\nfiltered ref points num: " + str(len(filtered_ref_points))+ "\nAvg of feature points in matching window: " + str(sum(points_in_winow_num)/len(filtered_ref_points)))
     return filtered_ref_points, matched_points
 
 def get_best_matching_point(template, target_image, points, match_window):
