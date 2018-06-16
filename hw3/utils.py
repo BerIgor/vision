@@ -62,32 +62,6 @@ def cvshow(title, im):
     cv.waitKey()
 
 
-def non_maximum_suppression(img, win_size):
-    # slide a window across the image
-    img_max = np.max(img)
-    suppressed_img = np.zeros(img.shape)
-    max_points_list = []
-    for y in range(0, img.shape[0], win_size):
-        for x in range(0, img.shape[1], win_size):
-            # Extract current window
-            y_next = y + win_size if (y + win_size <= img.shape[0]) else img.shape[0]
-            x_next = x + win_size if (x + win_size <= img.shape[1]) else img.shape[1]
-            img_win = img[y:y_next, x:x_next]
-            # NMS on window:
-            win_max = np.max(img_win)
-            for j in range(img_win.shape[0]):
-                for k in range(img_win.shape[1]):
-                    if (img_win[j, k] == win_max):
-                        img_win[j, k] = img_max
-                        max_points_list.append([x+j,y+k])
-                    else:
-                        img_win[j, k] = 0
-
-            suppressed_img[y:y_next, x:x_next] = img_win
-
-    return suppressed_img, max_points_list
-
-
 def display_images(image_list, mode='RGB'):
     f, sps = plt.subplots(nrows=1, ncols=len(image_list))
     if mode == 'GRAY':
@@ -103,3 +77,13 @@ def display_images(image_list, mode='RGB'):
 
     plt.show()
     return
+
+def check_out_of_range_points(point_list):
+    # Used for debugging
+    point_list_err = [point for point in point_list if point[0] > 720 or point[1] > 480]
+
+    return point_list_err
+
+def compare_two_images(img1, img2, title):
+    merged = cv.hconcat((img1, img2))
+    cvshow(title, merged)
