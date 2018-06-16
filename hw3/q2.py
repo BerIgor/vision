@@ -35,7 +35,7 @@ def harris_and_nms(image, nms_window=30):
     image_harris_nms[harris_nms_mask == np.max(harris_nms_mask)] = [0, 0, 255] # Window size of 64 was tested to return roughly 100 points on our frame
     # utils.cvshow("result", image_harris_nms)
 
-    return  feature_points, image_harris_nms
+    return feature_points, image_harris_nms
 
 def non_maximum_suppression(img, win_size):
     """

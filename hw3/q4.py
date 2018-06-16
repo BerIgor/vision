@@ -45,6 +45,9 @@ def get_transformation(points_reference, points_transformed):
     a = parameters[0:2, 0:2]
     b = parameters[0:2, 2]
     b = np.reshape(b, (2, 1))
+    print(parameters)
+    print(a)
+    print(b)
     return a, b
 
 

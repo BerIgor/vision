@@ -9,6 +9,19 @@ from hw3 import *
 pwd = os.getcwd().replace('\\','//')
 
 
+def get_all_video_frames(video_path):
+    video_reader = cv.VideoCapture(video_path)
+    frames = list()
+    more_frames = True
+    i = 0
+    while more_frames:
+        print("frame " + str(i))
+        more_frames, current_frame = video_reader.read()
+        frames.append(current_frame)
+        i += 1
+    return frames
+
+
 def get_frames_uniform(video_path, number_of_frames):
     video_reader = cv.VideoCapture(video_path)
     length = video_reader.get(cv.CAP_PROP_FRAME_COUNT)
@@ -65,9 +78,17 @@ if __name__ == "__main__":
     exit()
     """
 
-    stabilized_frames_q8 = q8.perform(frame_list, rc_point_lists)
+    frames_point_pairs = list()
+    transformations = list()
+    frame_list_q8 = get_all_video_frames(source_video_path)
+    for frame in frame_list_q8:
+        ref_points, seq_points = q6.perform_q6(frame_list_q8[0], frame)
+        transformations.append(q7.calc_transform_ransac(ref_points, seq_points))
+
+    stabilized_frames_q8 = q8.perform(frame_list_q8)
+
     stabilized_video_path = pwd + '/our_data/q8_ariel_stable.avi'
-    q1_make_video(stabilized_video_path, stabilized_frames_q8, 2)
+    q1_make_video(stabilized_video_path, stabilized_frames_q8, 1)
     exit()
 
     # Find edges using Harris

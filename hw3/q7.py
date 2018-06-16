@@ -6,6 +6,8 @@ from hw3 import q4
 
 
 def calc_transform_ransac(ref_points, seq_points):
+    if len(ref_points) != len(seq_points):
+        raise Exception('Bad lengths')
     indices = get_best_inlier_group_indices(ref_points, seq_points)
     ref_points_best = [ref_points[i] for i in indices]
     seq_points_best = [seq_points[i] for i in indices]
@@ -14,6 +16,8 @@ def calc_transform_ransac(ref_points, seq_points):
 
 
 def get_best_inlier_group_indices(ref_points, seq_points):
+    if len(ref_points) != len(seq_points):
+        raise Exception('Bad lengths')
     iteration = 1
     inlier_groups = list()
     while len(inlier_groups) == 0:
@@ -27,8 +31,11 @@ def get_best_inlier_group_indices(ref_points, seq_points):
 def get_inlier_groups_indices(ref_points, seq_points, repeats, max_dist=45):
 
     groups = list()
+    if len(ref_points) != len(seq_points):
+        raise Exception('Bad lengths')
+
     for i in range(repeats):
-        rand_indices = random.sample(range(len(ref_points)), 3)
+        rand_indices = random.sample(range(len(ref_points)), min(len(seq_points)-1, 3))
         ref_points_sample = [ref_points[i] for i in rand_indices]
         seq_points_sample = [seq_points[i] for i in rand_indices]
         a, b = q4.get_transformation(ref_points_sample, seq_points_sample)
