@@ -189,5 +189,11 @@ if __name__ == "__main__":
         ref = frame_list[0].copy() # Reset ref image
     '''
 
+    # Test q9
+    all_video_frames = get_all_video_frames(source_video_path)
+    q9.perform_subspace_video_stabilization(all_video_frames)
+
+    # Igor testing for q9 start here
+
 
 
