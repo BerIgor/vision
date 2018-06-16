@@ -18,12 +18,14 @@ def match_images(ref_image, ref_points, target_image, target_points, search_wind
     """
     matched_points = list()
     filtered_ref_points = list()
+    points_in_winow_num = list()
     for ref_point in ref_points:
         points_in_window = filter_points_not_in_window(ref_point, target_points, search_window)
         if not points_in_window:
             # Cancel reference feature points that no match was found for them
             continue
         filtered_ref_points.append(ref_point)
+        points_in_winow_num.append(float(len(points_in_window)))
         if len(points_in_window) == 1:
             best_point = points_in_window[0]
         else:
@@ -31,6 +33,7 @@ def match_images(ref_image, ref_points, target_image, target_points, search_wind
             # utils.cvshow("template", template)
             best_point = get_best_matching_point(template, target_image, points_in_window, match_window)
         matched_points.append(best_point)
+    print("ref points num: " + str(len(ref_points)) + "\nfiltered ref points num: " + str(len(filtered_ref_points))+ "\nAvg of feature points in matching window: " + str(sum(points_in_winow_num)/len(filtered_ref_points)))
     return filtered_ref_points, matched_points
 
 def get_best_matching_point(template, target_image, points, match_window):
@@ -62,6 +65,10 @@ def calc_ssd_list(template, image, points, match_window):
         # window = get_sub_image(ssd, point, match_window)
         # ssd_list.append(np.min(window))
         image_ssd_sub_win = get_sub_image(image, point, match_window)
+        # Truncate image according to template shape Image.shape must be >= template.shape
+        template_new_rowmax = image_ssd_sub_win.shape[0] if template.shape[0] > image_ssd_sub_win.shape[0] else template.shape[0]
+        template_new_colmax = image_ssd_sub_win.shape[1] if template.shape[1] > image_ssd_sub_win.shape[1] else template.shape[1]
+        template = template[0:template_new_rowmax, 0:template_new_colmax]
         ssd_score = cv.matchTemplate(image_ssd_sub_win, template, cv.TM_SQDIFF)
         ssd_list.append(np.max(ssd_score)) # As it's calculated per window, min and max are the same
 
@@ -83,7 +90,7 @@ def get_sub_image(image, point, window_size):
     row_max = min(row + window_size, np.shape(image)[0])
     col_max = min(col + window_size, np.shape(image)[1])
 
-    sub_image = image[row_min:row_max,col_min:col_max,:]
+    sub_image = image[row_min:row_max,col_min:col_max]
     # utils.cvshow("sub im", sub_image)
 
     return sub_image
@@ -129,13 +136,15 @@ def perform_q6(ref_image,target_image):
     """
 
     # Window for optimal matching
-    nms_window = 50
-    search_win = 30  # L
-    ssd_win = 20  # W
+    nms_window = 40 # Full Window size
+    search_win = 20  # 0.5*L - Half Window size
+    ssd_win = 5  # 0.5*W - Half Window size
 
     # Extract feature points for both images:
-    ref_feature_points, _ = q2.harris_and_nms(ref_image, nms_window)
-    target_feature_points, _ = q2.harris_and_nms(target_image, nms_window)
+    ref_feature_points, ref_features_img = q2.harris_and_nms(ref_image, nms_window)
+    target_feature_points, target_features_img = q2.harris_and_nms(target_image, nms_window)
+
+    utils.compare_two_images(ref_features_img, target_features_img, "Harris and nms - ref vs frame")
 
     return match_images(ref_image, ref_feature_points, target_image, target_feature_points, search_win, ssd_win)
 

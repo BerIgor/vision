@@ -49,19 +49,19 @@ if __name__ == "__main__":
     arr = np.array([[1, 2], [3, 4]])
     print(arr[1, 0])
 
-    points_to_mark = utils.get_frames_points()
-    for i in range(len(frame_list)):
-        frame = frame_list[i]
-        points = points_to_mark[i]
-        marked_image = q3.mark_points(frame, points)
-        utils.cvshow("FRAME", marked_image)
-
-    # q3.perform(frame_list)
-    transformation_list = q4.get_seq_transformation(utils.get_frames_points())
-    stabilized_images = q5.perform(frame_list, transformation_list)
-    print(len(stabilized_images))
-    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
-    q1_make_video(stabilized_video_path, stabilized_images, 2)
+    # # points_to_mark = utils.get_frames_points()
+    # # for i in range(len(frame_list)):
+    # #     frame = frame_list[i]
+    # #     points = points_to_mark[i]
+    # #     marked_image = q3.mark_points(frame, points)
+    # #     utils.cvshow("FRAME", marked_image)
+    #
+    # # q3.perform(frame_list)
+    # transformation_list = q4.get_seq_transformation(utils.get_frames_points())
+    # stabilized_images = q5.perform(frame_list, transformation_list)
+    # print(len(stabilized_images))
+    # stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
+    # q1_make_video(stabilized_video_path, stabilized_images, 2)
 
 
     # Find edges using Harris
@@ -73,14 +73,19 @@ if __name__ == "__main__":
     # Choose matching feature points
     # q3.choose_match_points_for_all_frames(frame_list)
 
-    # Matching of feature points, chosen manually:
-    # ref_feature_points = [(297, 187), (303, 236), (447, 92), (421, 309), (459, 360), (505, 154)]
-    # frame1_feature_points = [(304, 148), (308, 199), (459, 38), (419, 256), (450, 299), (510, 116)]
-    # frame2_feature_points = [(280, 225), (283, 263), (439, 90), (390, 302), (424, 357), (503, 166)]
-    # frame3_feature_points = [(235, 234), (239, 297), (399, 97), (363, 341), (393, 387), (459, 193)]
-    # frame4_feature_points = [(238, 233), (243, 268), (412, 71), (361, 314), (391, 358), (468, 179)]
-    # frame5_feature_points = [(244, 239), (245, 292), (422, 85), (360, 318), (401, 382), (470, 209)]
-    # frame6_feature_points = [(229, 265), (234, 299), (411, 74), (348, 298), (387, 364), (459, 209)]
+    # Get manually matched points
+    frames_feature_points_list = utils.get_frames_points()
+
+    # Test manual points:
+    # ref = frame_list[0]
+    # for i in range(len(frame_list[1:])):
+    #     frame = frame_list[i+1]
+    #     frame_feature_points = frames_feature_points_list[i]
+    #     final_ref_with_matkings = q3.mark_points(ref, ref_feature_points)
+    #     final_frame_with_markings = q3.mark_points(frame, frame_feature_points)
+    #     finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
+    #     utils.cvshow("final results - ref vs frame " + str(i+1), finals_merged)
+
     #
     # # Test q4 - finding affine transformation
     # points = list()
@@ -113,6 +118,8 @@ if __name__ == "__main__":
     for frame in frame_list[1:]:
         match_frame = frame.copy()
         ref_feature_points, matched_points = q6.perform_q6(ref, match_frame)
+
+
         print("ref points num: " + str(len(ref_feature_points)) + "\nframe points num: " + str(len(matched_points)))
         indices = list(range(len(ref_feature_points)))
         shuffle(indices)
@@ -124,10 +131,11 @@ if __name__ == "__main__":
         # final_ref_with_matkings = np.transpose(q3.mark_points(ref, ref_feature_points_test), (1, 0, 2))
         # final_frame_with_markings = np.transpose(q3.mark_points(match_frame, match_frame_points_test), (1, 0, 2))
         # finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
-        final_ref_with_matkings = q3.mark_points(ref, ref_feature_points_test)
+        for ip in range(len(ref_feature_points_test)):
+            print("Ref p: " + str(ref_feature_points_test[ip]) + " Match p: " + str(match_frame_points_test[ip]))
+        final_ref_with_markings = q3.mark_points(ref, ref_feature_points_test)
         final_frame_with_markings = q3.mark_points(match_frame, match_frame_points_test)
-        finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
-        utils.cvshow("final results - ref vs frame", finals_merged)
+        utils.compare_two_images(final_ref_with_markings, final_frame_with_markings, "harris and nms - ref vs frame")
         ref = frame_list[0].copy() # Reset ref image
 
     # utils.cvshow("Ref image feature", q3.mark_points(ref, ref_feature_points_test))
