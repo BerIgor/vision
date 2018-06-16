@@ -46,9 +46,6 @@ if __name__ == "__main__":
     source_video_path = pwd + '/our_data/ariel.mp4'
     frame_list = get_frames_uniform(source_video_path, 7)
 
-    arr = np.array([[1, 2], [3, 4]])
-    print(arr[1, 0])
-
     """
     points_to_mark = utils.get_frames_points()
     for i in range(len(frame_list)):
@@ -57,17 +54,21 @@ if __name__ == "__main__":
         marked_image = q3.mark_points(frame, points)
         utils.cvshow("FRAME", marked_image)
     """
-    stabilized_frames_q8 = q8.perform(frame_list, utils.get_frames_points())
-    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
-    q1_make_video(stabilized_video_path, stabilized_frames_q8, 2)
-    exit()
-    # q3.perform(frame_list)
-    transformation_list = q4.get_seq_transformation(utils.get_frames_points())
+
+    xy_point_lists = utils.get_frames_points()
+    rc_point_lists = utils.invert_point_lists(xy_point_lists)
+    """
+    transformation_list = q4.get_seq_transformation(rc_point_lists)
     stabilized_images = q5.perform(frame_list, transformation_list)
-    print(len(stabilized_images))
     stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
     q1_make_video(stabilized_video_path, stabilized_images, 2)
+    exit()
+    """
 
+    stabilized_frames_q8 = q8.perform(frame_list, rc_point_lists)
+    stabilized_video_path = pwd + '/our_data/q8_ariel_stable.avi'
+    q1_make_video(stabilized_video_path, stabilized_frames_q8, 2)
+    exit()
 
     # Find edges using Harris
     # image_harris_nms = q2.harris_and_nms(image)

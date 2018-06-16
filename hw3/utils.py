@@ -14,6 +14,31 @@ frame6_feature_points = [(229, 265), (234, 299), (411, 74), (348, 298), (387, 36
 frames_points = [ref_feature_points, frame1_feature_points, frame2_feature_points, frame3_feature_points,
                  frame4_feature_points, frame5_feature_points, frame6_feature_points]
 
+"""
+The following two functions are here to convert our (x,y) lists to (r,c) lists
+"""
+
+
+def invert_point_lists(point_lists):
+    inverted_point_lists = list()
+    for points in point_lists:
+        inverted_point_lists.append(invert_points(points))
+    return inverted_point_lists
+
+
+def invert_points(points):
+    inverted_points = list()
+    for point in points:
+        x, y = point
+        new_point = (y, x)
+        inverted_points.append(new_point)
+    return inverted_points
+
+
+"""
+End of these stupid functions
+"""
+
 
 def get_frames_points():
     return frames_points

@@ -23,10 +23,11 @@ def stabilize_image(image, a, b):
     :return: a stabilized image
     """
     print(str(a) + " " + str(b))
-    stabilized_image = interpolate_image_under_transformation3(image, a, b)
+    stabilized_image = interpolate_image_under_transformation(image, a, b)  # igor's method is 3
     return stabilized_image
 
 
+"""
 # TODO: This works, but you need to understand how
 def interpolate_image_under_transformation(image, a, b):
     grid_x, grid_y = np.mgrid[range(image.shape[0]), range(image.shape[1])]
@@ -40,6 +41,23 @@ def interpolate_image_under_transformation(image, a, b):
     img_stable = np.zeros(image.shape)
     for j in range(3):
         img_stable[:, :, j] = interpolate.griddata(points, image[:, :, j].flatten(), (grid_x, grid_y), method='linear')
+    img_stable = np.uint8(img_stable)
+    return img_stable
+"""
+
+
+def interpolate_image_under_transformation(image, a, b):
+    grid_r, grid_c = np.mgrid[range(image.shape[0]), range(image.shape[1])]
+    z = np.array([grid_r.flatten(), grid_c.flatten()])
+    zz = np.matmul(a, z) + b
+    grid_r_new = np.reshape(zz[0, :], grid_r.shape)
+    grid_c_new = np.reshape(zz[1, :], grid_c.shape)
+    points = np.random.rand(image.shape[0] * image.shape[1], 2)
+    points[:, 0] = grid_r_new.flatten()
+    points[:, 1] = grid_c_new.flatten()
+    img_stable = np.zeros(image.shape)
+    for j in range(3):
+        img_stable[:, :, j] = interpolate.griddata(points, image[:, :, j].flatten(), (grid_r, grid_c), method='linear')
     img_stable = np.uint8(img_stable)
     return img_stable
 

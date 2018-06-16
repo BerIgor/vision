@@ -17,16 +17,15 @@ def get_best_inlier_group_indices(ref_points, seq_points):
     iteration = 1
     inlier_groups = list()
     while len(inlier_groups) == 0:
-        print(iteration)
         inlier_groups = get_inlier_groups_indices(ref_points, seq_points, 100, max_dist=45*iteration)
         iteration += 1
 
-    print("inlier groups == " + str(inlier_groups))
     largest_group = max(inlier_groups, key=len)
     return largest_group
 
 
 def get_inlier_groups_indices(ref_points, seq_points, repeats, max_dist=45):
+
     groups = list()
     for i in range(repeats):
         rand_indices = random.sample(range(len(ref_points)), 3)
@@ -41,7 +40,6 @@ def get_inlier_groups_indices(ref_points, seq_points, repeats, max_dist=45):
                 group.append(rand_indices[j])
         if len(group) > 0:
             groups.append(group)
-
     return groups
 
 
