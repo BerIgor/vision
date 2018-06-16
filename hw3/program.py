@@ -2,7 +2,7 @@ import sys, os
 import cv2 as cv
 import math
 import numpy as np
-
+import random
 from hw3 import *
 
 # Globals
@@ -49,20 +49,24 @@ if __name__ == "__main__":
     arr = np.array([[1, 2], [3, 4]])
     print(arr[1, 0])
 
-    # # points_to_mark = utils.get_frames_points()
-    # # for i in range(len(frame_list)):
-    # #     frame = frame_list[i]
-    # #     points = points_to_mark[i]
-    # #     marked_image = q3.mark_points(frame, points)
-    # #     utils.cvshow("FRAME", marked_image)
-    #
-    # # q3.perform(frame_list)
-    # transformation_list = q4.get_seq_transformation(utils.get_frames_points())
-    # stabilized_images = q5.perform(frame_list, transformation_list)
-    # print(len(stabilized_images))
-    # stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
-    # q1_make_video(stabilized_video_path, stabilized_images, 2)
-
+    """
+    points_to_mark = utils.get_frames_points()
+    for i in range(len(frame_list)):
+        frame = frame_list[i]
+        points = points_to_mark[i]
+        marked_image = q3.mark_points(frame, points)
+        utils.cvshow("FRAME", marked_image)
+    """
+    stabilized_frames_q8 = q8.perform(frame_list, utils.get_frames_points())
+    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
+    q1_make_video(stabilized_video_path, stabilized_frames_q8, 2)
+    exit()
+    # q3.perform(frame_list)
+    transformation_list = q4.get_seq_transformation(utils.get_frames_points())
+    stabilized_images = q5.perform(frame_list, transformation_list)
+    print(len(stabilized_images))
+    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
+    q1_make_video(stabilized_video_path, stabilized_images, 2)
 
     # Find edges using Harris
     # image_harris_nms = q2.harris_and_nms(image)
@@ -70,47 +74,53 @@ if __name__ == "__main__":
     # q3.mark_points(image, plist)
     # utils.cvshow("marked", q3.mark_points(image, plist))
 
-    # Choose matching feature points
-    # q3.choose_match_points_for_all_frames(frame_list)
+    # Test q3 - Choose manually matching feature points
+    '''
+    q3.choose_match_points_for_all_frames(frame_list)
 
     # Get manually matched points
     frames_feature_points_list = utils.get_frames_points()
 
     # Test manual points:
-    # ref = frame_list[0]
-    # for i in range(len(frame_list[1:])):
-    #     frame = frame_list[i+1]
-    #     frame_feature_points = frames_feature_points_list[i]
-    #     final_ref_with_matkings = q3.mark_points(ref, ref_feature_points)
-    #     final_frame_with_markings = q3.mark_points(frame, frame_feature_points)
-    #     finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
-    #     utils.cvshow("final results - ref vs frame " + str(i+1), finals_merged)
+    ref = frame_list[0]
+    for i in range(len(frame_list[1:])):
+        frame = frame_list[i+1]
+        frame_feature_points = frames_feature_points_list[i]
+        final_ref_with_matkings = q3.mark_points(ref, ref_feature_points)
+        final_frame_with_markings = q3.mark_points(frame, frame_feature_points)
+        finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
+        utils.cvshow("final results - ref vs frame " + str(i+1), finals_merged)
+    '''
 
-    #
-    # # Test q4 - finding affine transformation
-    # points = list()
-    # # points.append([(1, 1), (2, 2), (3, 3)])
-    # # points.append([(2, 2), (3, 3), (4, 4)])
-    # points.append(ref_feature_points)
-    # points.append(frame1_feature_points)
-    #
-    # res_list = q4.get_seq_transformation(points)
-    # a, b = res_list[0]
-    #
-    # for ref_point in ref_feature_points[3:]:
-    #     print("Reference Point")
-    #     print(ref_point)
-    #     points_transformed = q4.test_transformation2(np.vstack(ref_point), a, b)
-    #     print("Transformed points:")
-    #     print((tuple(np.squeeze(points_transformed))))
+    # Test q4 - finding affine transformation
+    '''
+    points = list()
+    # points.append([(1, 1), (2, 2), (3, 3)])
+    # points.append([(2, 2), (3, 3), (4, 4)])
+    points.append(ref_feature_points)
+    points.append(frame1_feature_points)
+
+    res_list = q4.get_seq_transformation(points)
+    a, b = res_list[0]
+
+    for ref_point in ref_feature_points[3:]:
+        print("Reference Point")
+        print(ref_point)
+        points_transformed = q4.test_transformation2(np.vstack(ref_point), a, b)
+        print("Transformed points:")
+        print((tuple(np.squeeze(points_transformed))))
+    '''
 
     # Test q5 - Stabillization
-    # ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
+    '''
+    ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
 
-    # result_video_path = pwd + '/our_data/result.avi'
-    # q1_make_video(result_video_path, frame_list, 3)
+    result_video_path = pwd + '/our_data/result.avi'
+    q1_make_video(result_video_path, frame_list, 3)
+    '''
 
     # Test q6
+    '''
     from random import shuffle
 
     ref = frame_list[0].copy()
@@ -137,9 +147,7 @@ if __name__ == "__main__":
         final_frame_with_markings = q3.mark_points(match_frame, match_frame_points_test)
         utils.compare_two_images(final_ref_with_markings, final_frame_with_markings, "harris and nms - ref vs frame")
         ref = frame_list[0].copy() # Reset ref image
-
-    # utils.cvshow("Ref image feature", q3.mark_points(ref, ref_feature_points_test))
-    # utils.cvshow("Frame - Auto detected matching features", q3.mark_points(match_frame, match_frame_points_test))
+    '''
 
 
 
