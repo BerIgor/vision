@@ -1,7 +1,32 @@
 import numpy as np
 
 
+def get_transformation2(points_reference, points_transformed):
+    x = np.matrix(points_reference)
+    y = np.matrix(points_transformed)
+
+    # add ones on the bottom of x and y
+    x = np.hstack((x,[1,1,1,1,1,1]))
+    y = np.hstack((y,[1,1,1,1,1,1]))
+    print(x)
+    print(y)
+    exit()
+    print(parameters)
+    # solve for A2
+    parameters, _, a_rank, _ = np.linalg.lstsq(x, y)
+
+    exit()
+    # A2 = y * x.I
+    # return function that takes input x and transforms it
+    # don't need to return the 4th row as it is
+    return lambda x: (A2*np.vstack((np.matrix(x).reshape(3,1),1)))[0:3,:]
+
+
 def get_transformation(points_reference, points_transformed):
+    print("In transformation")
+    print(points_reference)
+    print(points_transformed)
+    print("Exit transformation")
     """
     Calculates the affine transformation between the points using least squares
     Input example: [(1, 1), (2, 2), (3, 3)]
@@ -10,11 +35,19 @@ def get_transformation(points_reference, points_transformed):
     :return: the transformation matrix
     """
     x = np.array(points_reference)
-    y_ = np.array(points_transformed)
-    y = np.insert(y_, 2, 1, axis=1)
+    v = np.reshape(np.ones(x.shape[0]), (-1, 1))
+    x = np.hstack((x, v))
+    y = (np.array(points_transformed)).transpose()
+    y = (np.vstack((y, np.ones(y.shape[1])))).transpose()
+
     parameters, _, a_rank, _ = np.linalg.lstsq(x, y)
-    a = parameters[:, [0, 1]]
-    b = parameters[:, [2]]
+    parameters[np.abs(parameters) < 1e-10] = 0
+    a = parameters[0:2, 0:2]
+    b = parameters[0:2, 2]
+    b = np.reshape(b, (2, 1))
+    print(parameters)
+    print(a)
+    print(b)
     return a, b
 
 

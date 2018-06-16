@@ -9,12 +9,22 @@ from hw3 import *
 pwd = os.getcwd().replace('\\','//')
 
 
-def get_frames_uniform(video_path, number_of_frames=-1):
+def get_all_video_frames(video_path):
+    video_reader = cv.VideoCapture(video_path)
+    frames = list()
+    more_frames = True
+    i = 0
+    while more_frames:
+        print("frame " + str(i))
+        more_frames, current_frame = video_reader.read()
+        frames.append(current_frame)
+        i += 1
+    return frames
+
+
+def get_frames_uniform(video_path, number_of_frames):
     video_reader = cv.VideoCapture(video_path)
     length = video_reader.get(cv.CAP_PROP_FRAME_COUNT)
-    if number_of_frames == -1:
-        # Create list of all video frames
-        number_of_frames = int(length)
     interval = math.floor(length/number_of_frames)
     frames = list()
     for i in range(number_of_frames):
@@ -49,9 +59,6 @@ if __name__ == "__main__":
     source_video_path = pwd + '/our_data/ariel.mp4'
     frame_list = get_frames_uniform(source_video_path, 7)
 
-    arr = np.array([[1, 2], [3, 4]])
-    print(arr[1, 0])
-
     """
     points_to_mark = utils.get_frames_points()
     for i in range(len(frame_list)):
@@ -61,15 +68,28 @@ if __name__ == "__main__":
         utils.cvshow("FRAME", marked_image)
     """
 
-    # stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
-    # q1_make_video(stabilized_video_path, stabilized_frames_q8, 2)
-    # exit()
-    # # q3.perform(frame_list)
-    # transformation_list = q4.get_seq_transformation(utils.get_frames_points())
-    # stabilized_images = q5.perform(frame_list, transformation_list)
-    # print(len(stabilized_images))
-    # stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
-    # q1_make_video(stabilized_video_path, stabilized_images, 2)
+    xy_point_lists = utils.get_frames_points()
+    rc_point_lists = utils.invert_point_lists(xy_point_lists)
+    """
+    transformation_list = q4.get_seq_transformation(rc_point_lists)
+    stabilized_images = q5.perform(frame_list, transformation_list)
+    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
+    q1_make_video(stabilized_video_path, stabilized_images, 2)
+    exit()
+    """
+
+    frames_point_pairs = list()
+    transformations = list()
+    frame_list_q8 = get_all_video_frames(source_video_path)
+    for frame in frame_list_q8:
+        ref_points, seq_points = q6.perform_q6(frame_list_q8[0], frame)
+        transformations.append(q7.calc_transform_ransac(ref_points, seq_points))
+
+    stabilized_frames_q8 = q8.perform(frame_list_q8)
+
+    stabilized_video_path = pwd + '/our_data/q8_ariel_stable.avi'
+    q1_make_video(stabilized_video_path, stabilized_frames_q8, 1)
+    exit()
 
     # Find edges using Harris
     # image_harris_nms = q2.harris_and_nms(image)
@@ -153,7 +173,7 @@ if __name__ == "__main__":
     '''
 
     # Test q9
-    all_video_frames = get_frames_uniform(source_video_path)
+    all_video_frames = get_all_video_frames(source_video_path)
     q9.perform_subspace_video_stabilization(all_video_frames)
 
     # Igor testing for q9 start here

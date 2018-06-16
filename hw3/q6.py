@@ -2,8 +2,6 @@ import numpy as np
 import cv2 as cv
 from hw3 import q2, utils
 
-# TODO: Complete q6: show 10 automatically matched points
-
 
 def match_images(ref_image, ref_points, target_image, target_points, search_window, match_window):
     """
@@ -111,7 +109,6 @@ def point_is_in_window(ref_point, point, search_window_size):
     return (x_dist <= search_window_size and y_dist <= search_window_size)
 
 
-
 def filter_points_not_in_window(ref_point, points, window_size):
     """
     Filters points so that they all are within the window
@@ -144,7 +141,7 @@ def perform_q6(ref_image,target_image):
     ref_feature_points, ref_features_img = q2.harris_and_nms(ref_image, nms_window)
     target_feature_points, target_features_img = q2.harris_and_nms(target_image, nms_window)
 
-    utils.compare_two_images(ref_features_img, target_features_img, "Harris and nms - ref vs frame")
+    # utils.compare_two_images(ref_features_img, target_features_img, "Harris and nms - ref vs frame")
 
     return match_images(ref_image, ref_feature_points, target_image, target_feature_points, search_win, ssd_win)
 
