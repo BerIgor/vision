@@ -66,10 +66,11 @@ def make_normal_video(output_video_path, frames):
 if __name__ == "__main__":
     # close all open windows
     cv.destroyAllWindows()
-    print("Welcome to hw3")
-    source_video_path = pwd + '/our_data/ariel.mp4'
-    frame_list = get_frames_uniform(source_video_path, 7)
 
+    print("Welcome to hw3")
+    source_video_path = pwd + '/our_data/milk.mp4'
+    # frame_list = get_frames_uniform(source_video_path, 7)
+    frame_list = get_all_video_frames(source_video_path)
     """
     points_to_mark = utils.get_frames_points()
     for i in range(len(frame_list)):
@@ -77,8 +78,8 @@ if __name__ == "__main__":
         points = points_to_mark[i]
         marked_image = q3.mark_points(frame, points)
         utils.cvshow("FRAME", marked_image)
-    """
-    """
+
+
     xy_point_lists = utils.get_frames_points()
     rc_point_lists = utils.invert_point_lists(xy_point_lists)
 
@@ -88,9 +89,9 @@ if __name__ == "__main__":
     q1_make_video(stabilized_video_path, stabilized_images, 2)
     exit()
 
-    """
+
     frame_list_q8 = get_all_video_frames(source_video_path)
-    """
+
     frames_point_pairs = list()
     transformations = list()
     
@@ -100,10 +101,20 @@ if __name__ == "__main__":
         # ref_points = utils.invert_points(ref_points)
         # seq_points = utils.invert_points(seq_points)
         transformations.append(q7.calc_transform_ransac(ref_points, seq_points))
-    """
-    stabilized_frames_q8 = q8.perform(frame_list_q8[:10])
 
-    stabilized_video_path = pwd + '/our_data/q8_ariel_stable.avi'
+    stabilized_frames_q8 = q8.perform(frame_list_q8)
+
+    i = 0
+    for frame in frame_list:
+        utils.video_save_frame(frame, "orig", i)
+        i += 1
+
+    i = 0
+    for frame in stabilized_frames_q8:
+        utils.video_save_frame(frame, pwd, "stab", i)
+        i += 1
+
+    stabilized_video_path = pwd + '/our_data/q8_milk_stable.avi'
     make_normal_video(stabilized_video_path, stabilized_frames_q8)
 
     exit()
@@ -115,7 +126,8 @@ if __name__ == "__main__":
     # utils.cvshow("marked", q3.mark_points(image, plist))
 
     # Test q3 - Choose manually matching feature points
-    '''
+
+
     q3.choose_match_points_for_all_frames(frame_list)
 
     # Get manually matched points
@@ -130,10 +142,10 @@ if __name__ == "__main__":
         final_frame_with_markings = q3.mark_points(frame, frame_feature_points)
         finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
         utils.cvshow("final results - ref vs frame " + str(i+1), finals_merged)
-    '''
+
 
     # Test q4 - finding affine transformation
-    '''
+
     points = list()
     # points.append([(1, 1), (2, 2), (3, 3)])
     # points.append([(2, 2), (3, 3), (4, 4)])
@@ -149,51 +161,77 @@ if __name__ == "__main__":
         points_transformed = q4.test_transformation2(np.vstack(ref_point), a, b)
         print("Transformed points:")
         print((tuple(np.squeeze(points_transformed))))
-    '''
+
 
     # Test q5 - Stabillization
-    '''
+
     ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
 
     result_video_path = pwd + '/our_data/result.avi'
     q1_make_video(result_video_path, frame_list, 3)
-    '''
 
+    """
     # Test q6
-    '''
-    from random import shuffle
 
-    ref = frame_list[0].copy()
-    test_points_num = 10
+    # ref = cv.imread(str(pwd) + '/our_data/orig/0.jpg')
+    # milk = cv.imread(str(pwd) + '/our_data/stab/14.jpg')
+    ref = frame_list[0]
+    i = 1
     for frame in frame_list[1:]:
-        match_frame = frame.copy()
-        ref_feature_points, matched_points = q6.perform_q6(ref, match_frame)
+        milk = frame_list[14]
 
+        print(np.shape(ref))
+        print(np.shape(milk))
+        from random import shuffle
 
-        print("ref points num: " + str(len(ref_feature_points)) + "\nframe points num: " + str(len(matched_points)))
-        indices = list(range(len(ref_feature_points)))
-        shuffle(indices)
-        point_indices = indices[0:test_points_num]
-        print(type(point_indices[0]))
-        ref_feature_points_test = [ref_feature_points[ind] for ind in point_indices]
-        match_frame_points_test = [matched_points[ind] for ind in point_indices]
-        print("ref points test num: " + str(len(ref_feature_points_test)) + "\nframe points test num: " + str(len(match_frame_points_test)))
-        # final_ref_with_matkings = np.transpose(q3.mark_points(ref, ref_feature_points_test), (1, 0, 2))
-        # final_frame_with_markings = np.transpose(q3.mark_points(match_frame, match_frame_points_test), (1, 0, 2))
-        # finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
-        for ip in range(len(ref_feature_points_test)):
-            print("Ref p: " + str(ref_feature_points_test[ip]) + " Match p: " + str(match_frame_points_test[ip]))
-        final_ref_with_markings = q3.mark_points(ref, ref_feature_points_test)
-        final_frame_with_markings = q3.mark_points(match_frame, match_frame_points_test)
-        utils.compare_two_images(final_ref_with_markings, final_frame_with_markings, "harris and nms - ref vs frame")
-        ref = frame_list[0].copy() # Reset ref image
-    '''
+        ref_feature_points, matched_points = q6.perform_q6(ref, milk)
+
+        ref_mark = q3.mark_points(ref, ref_feature_points)
+        milk_mark = q3.mark_points(milk, matched_points)
+
+        print(ref_mark.shape)
+        print(milk_mark.shape)
+        # utils.cvshow("REF", ref_mark)
+        # utils.cvshow("14", milk_mark)
+
+        a, b = q7.calc_transform_ransac(ref_feature_points, matched_points)
+        stab_milk = q5.stabilize_image_cv(milk, a, b)
+        # utils.cvshow("STAB", stab_milk)
+        path = str(pwd) + '/our_data/stab_new/' + str(i) + '.jpg'
+        print(np.shape(ref_mark))
+        print(np.shape(stab_milk))
+        merged = cv.hconcat((ref_mark, stab_milk))
+        cv.imwrite(path, merged)
+
+        i += 1
+    """
+    # for frame in frame_list[14]:
+    frame = milk
+
+    match_frame = frame.copy()
+    ref_feature_points, matched_points = q6.perform_q6(ref, match_frame)
+
+    print("ref points num: " + str(len(ref_feature_points)) + "\nframe points num: " + str(len(matched_points)))
+    indices = list(range(len(ref_feature_points)))
+    shuffle(indices)
+    point_indices = indices[0:test_points_num]
+    print(type(point_indices[0]))
+    ref_feature_points_test = [ref_feature_points[ind] for ind in point_indices]
+    match_frame_points_test = [matched_points[ind] for ind in point_indices]
+    print("ref points test num: " + str(len(ref_feature_points_test)) + "\nframe points test num: " + str(len(match_frame_points_test)))
+    # final_ref_with_matkings = np.transpose(q3.mark_points(ref, ref_feature_points_test), (1, 0, 2))
+    # final_frame_with_markings = np.transpose(q3.mark_points(match_frame, match_frame_points_test), (1, 0, 2))
+    # finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
+    for ip in range(len(ref_feature_points_test)):
+        print("Ref p: " + str(ref_feature_points_test[ip]) + " Match p: " + str(match_frame_points_test[ip]))
+    final_ref_with_markings = q3.mark_points(ref, ref_feature_points_test)
+    final_frame_with_markings = q3.mark_points(match_frame, match_frame_points_test)
+    utils.compare_two_images(final_ref_with_markings, final_frame_with_markings, "harris and nms - ref vs frame")
+    ref = frame_list[0].copy() # Reset ref image
+
 
     # Test q9
     all_video_frames = get_all_video_frames(source_video_path)
     q9.perform_subspace_video_stabilization(all_video_frames)
-
+    """
     # Igor testing for q9 start here
-
-
-

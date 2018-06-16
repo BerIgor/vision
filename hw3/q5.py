@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import interpolate
+import cv2
 from hw3 import utils
 from scipy.interpolate import RegularGridInterpolator
 
@@ -9,9 +10,30 @@ def perform(frames, transformations):
     for i in range(len(frames)):
         frame = frames[i]
         a, b = transformations[i]
-        stabilized_image = stabilize_image(frame, a, b)
+        stabilized_image = stabilize_image_cv(frame, a, b)
         stabilized_images.append(stabilized_image)
     return stabilized_images
+
+
+def stabilize_image_cv(frame, a, b):
+
+    transformation_mat = np.hstack((a, b))
+    transformed_frame = np.zeros((frame.shape[1], frame.shape[0], frame.shape[2]))
+
+    for layer in range(frame.shape[2]):
+        frame_layer = frame[:, :, layer]
+        print("here")
+        print(frame_layer.shape)
+
+        curr_transformed_frame = cv2.warpAffine(src=frame_layer, M=transformation_mat,
+                                                dsize=frame_layer.shape,
+                                                flags=cv2.INTER_LINEAR)
+
+        transformed_frame[:, :, layer] = curr_transformed_frame
+        print("there")
+        print(curr_transformed_frame.shape)
+
+    return transformed_frame
 
 
 def stabilize_image(image, a, b):
