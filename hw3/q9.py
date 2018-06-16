@@ -1,0 +1,94 @@
+import numpy as np
+import cv2
+import math
+
+def perform_subspace_video_stabilization(frame_list):
+    # Stages are according to the moodle note - https://moodle.technion.ac.il/mod/forum/discuss.php?d=423166
+
+    # Stage 1 - Extract KLT features and build matrix M:
+    M = extract_klt_features(frame_list)
+
+    # Stage 2 + 3 - Break M to windows and truncate zeros from window
+    M_windows_list = break_m_into_windows(M)
+
+    # Stage 3 -
+
+
+def extract_klt_features(frame_list):
+    # Based on: https://docs.opencv.org/3.3.1/d7/d8b/tutorial_py_lucas_kanade.html
+    # TODO - parameters may vary for our video
+    # params for ShiTomasi corner detection
+    feature_params = dict(maxCorners=frame_list[0].size,
+                          qualityLevel=0.01,
+                          minDistance=1,
+                          blockSize=7)
+    # Parameters for lucas kanade optical flow
+    lk_params = dict(winSize=(15, 15),
+                     maxLevel=2,
+                     criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+    # Create some random colors
+    color = np.random.randint(0, 255, (100, 3))
+    # Take first frame and find corners in it
+    old_frame = frame_list[0]
+    old_gray = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
+    p0 = cv2.goodFeaturesToTrack(old_gray, mask=None, **feature_params)
+    print("Num of features found: " + str(p0.shape[0]))
+    M = np.zeros((p0.shape[0]*2,len(frame_list))) # Intiallize M matrix
+    M[:, 0] = p0[:, 0, :].flatten()
+    # Create a mask image for drawing purposes
+    mask = np.zeros_like(old_frame)
+    for i in range(len(frame_list[1:])):
+        frame_gray = cv2.cvtColor(frame_list[i+1], cv2.COLOR_BGR2GRAY)
+        # calculate optical flow
+        p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
+        if st.size != np.count_nonzero(st):
+            print("iter " + str(i))
+        # Select good points
+        good_new = p1[st == 1] # TODO - Do we need this? it can filter points, which can cause issues. Alternatively, we can pad with zeros
+        good_old = p0[st == 1]
+        M[:,i+1] = good_new.flatten()
+        # draw the tracks
+        # for i, (new, old) in enumerate(zip(good_new, good_old)):
+        #     a, b = new.ravel()
+        #     c, d = old.ravel()
+        #     mask = cv2.line(mask, (a, b), (c, d), color[i].tolist(), 2)
+        #     frame = cv2.circle(frame, (a, b), 5, color[i].tolist(), -1)
+        # img = cv2.add(frame, mask)
+        # cv2.imshow('frame', img)
+        # k = cv2.waitKey(27) & 0xff
+        # if k == 27:
+        #     break
+        # Now update the previous frame and previous points
+        old_gray = frame_gray.copy()
+        p0 = good_new.reshape(-1, 1, 2)
+
+    cv2.destroyAllWindows()
+    return M
+
+
+def break_m_into_windows(M, frames_per_window=50, window_delta=5):
+    m_windows_list = list()
+    num_of_frames = M.shape[1]
+    windows_num = math.floor(num_of_frames / window_delta)
+    for i in range(windows_num):
+        print("Window " + str(i))
+        next_ind = frames_per_window + window_delta * i
+        curr_window = M[:, window_delta * i:next_ind]
+        curr_window_truncated = truncate_zeros_from_window(curr_window)
+        m_windows_list.append(curr_window_truncated)
+
+    last_window = M[:, next_ind:num_of_frames-1]
+    last_window_truncated = truncate_zeros_from_window(last_window)
+    m_windows_list.append(last_window_truncated)
+
+    return m_windows_list
+
+def truncate_zeros_from_window(window):
+    # print("Num of zeros in window: " + str(window.size-np.count_nonzero(window)))
+    return window
+
+
+
+
+## Igor functions start here (Stages 5-9) ###
+

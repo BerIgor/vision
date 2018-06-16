@@ -9,9 +9,12 @@ from hw3 import *
 pwd = os.getcwd().replace('\\','//')
 
 
-def get_frames_uniform(video_path, number_of_frames):
+def get_frames_uniform(video_path, number_of_frames=-1):
     video_reader = cv.VideoCapture(video_path)
     length = video_reader.get(cv.CAP_PROP_FRAME_COUNT)
+    if number_of_frames == -1:
+        # Create list of all video frames
+        number_of_frames = int(length)
     interval = math.floor(length/number_of_frames)
     frames = list()
     for i in range(number_of_frames):
@@ -57,16 +60,16 @@ if __name__ == "__main__":
         marked_image = q3.mark_points(frame, points)
         utils.cvshow("FRAME", marked_image)
     """
-    stabilized_frames_q8 = q8.perform(frame_list, utils.get_frames_points())
-    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
-    q1_make_video(stabilized_video_path, stabilized_frames_q8, 2)
-    exit()
-    # q3.perform(frame_list)
-    transformation_list = q4.get_seq_transformation(utils.get_frames_points())
-    stabilized_images = q5.perform(frame_list, transformation_list)
-    print(len(stabilized_images))
-    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
-    q1_make_video(stabilized_video_path, stabilized_images, 2)
+
+    # stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
+    # q1_make_video(stabilized_video_path, stabilized_frames_q8, 2)
+    # exit()
+    # # q3.perform(frame_list)
+    # transformation_list = q4.get_seq_transformation(utils.get_frames_points())
+    # stabilized_images = q5.perform(frame_list, transformation_list)
+    # print(len(stabilized_images))
+    # stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
+    # q1_make_video(stabilized_video_path, stabilized_images, 2)
 
     # Find edges using Harris
     # image_harris_nms = q2.harris_and_nms(image)
@@ -148,6 +151,12 @@ if __name__ == "__main__":
         utils.compare_two_images(final_ref_with_markings, final_frame_with_markings, "harris and nms - ref vs frame")
         ref = frame_list[0].copy() # Reset ref image
     '''
+
+    # Test q9
+    all_video_frames = get_frames_uniform(source_video_path)
+    q9.perform_subspace_video_stabilization(all_video_frames)
+
+    # Igor testing for q9 start here
 
 
 
