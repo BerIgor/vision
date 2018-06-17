@@ -61,21 +61,21 @@ if __name__ == "__main__":
     source_video_path = pwd + '/our_data/ariel.mp4'
     frame_list = get_frames_uniform(source_video_path, 7, rotate=False)
 
+    # Q2
+    q2.perform(frame_list)
+
     # Q3
     q3_frame_list = get_frames_uniform(source_video_path, 7, rotate=False)
     q3.perform(q3_frame_list)
 
     # Q4
+    q4.perform()
     q4_transformations = q4.get_seq_transformation(utils.get_frames_points())
 
     # Q5
-    q5_stabilized_frames = q5.perform(frame_list, q4_transformations)
-    """
-    frames_points = utils.get_frames_points()
-    for i in range(len(q5_stabilized_frames)):
-        q3.mark_points(q5_stabilized_frames[i], frames_points[i])
-        utils.cvshow("stab2", q5_stabilized_frames[i])
-    """
+    q5.perform(frame_list, q4_transformations)
+    # TODO: Remove the thing below and do it in q5.perform
+    q5_stabilized_frames = q5.stabilize_frames(frame_list, q4_transformations)
     make_normal_video(pwd + '/our_data/q5_ariel_stable.avi', q5_stabilized_frames)
 
     # Q6
@@ -85,6 +85,7 @@ if __name__ == "__main__":
     for frame in frame_list:
         print("frame")
         ref_feature_points, matched_points = q6.perform_q6(frame_list[0], frame, mask)
+
     # TODO: Complete
 
     # Q8

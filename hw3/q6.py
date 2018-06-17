@@ -126,7 +126,7 @@ def filter_points_not_in_window(ref_point, points, window_size):
     return filtered_list
 
 
-def perform_q6(ref_image, target_image, mask):
+def perform_q6(ref_image, target_image, mask, ref_points=None):
     """
     Receives a reference image and a target image and returns 10 automatically matched points between them (composition of all sub functions)
     :param ref_image: is the reference image
@@ -140,7 +140,11 @@ def perform_q6(ref_image, target_image, mask):
     ssd_win = 10  # 0.5*W - Half Window size
 
     # Extract feature points for both images:
-    ref_feature_points, ref_features_img = q2.harris_and_nms(ref_image, nms_window)
+    if ref_points is None:
+        ref_feature_points, ref_features_img = q2.harris_and_nms(ref_image, nms_window)
+    else:
+        ref_feature_points = ref_points
+
     target_feature_points, target_features_img = q2.harris_and_nms(target_image, nms_window)
     # filter out points that do not correspond to points in the mask
     f_ref_points, f_seq_points = filter_points_not_in_mask(ref_feature_points, target_feature_points, mask)

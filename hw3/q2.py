@@ -3,6 +3,20 @@ import numpy as np
 from hw3 import utils
 
 
+def perform(frame_list):
+    frames_with_features = list()
+    indices = [0, 3, 5]
+    frame_list = [frame_list[x] for x in indices]
+    for frame in frame_list:
+        features, frame_after_harris = harris_and_nms(frame, nms_window=20)
+        frames_with_features.append(frame_after_harris)
+
+    rframes = utils.rotate_frames(frames_with_features)
+    stacked_frames = utils.hstack_frames(rframes)
+
+    cv.imwrite(utils.get_pwd() + "/q2" + ".jpg", stacked_frames)
+
+
 # input: image that was prepped for harris detection
 def harris_detect(image):
     res = cv.cornerHarris(image, 5, 3, 0.04)
@@ -33,7 +47,7 @@ def harris_and_nms(image, nms_window=30):
     # Set survivor nms points on image
     image_harris_nms = image.copy()
     harris_nms_mask, feature_points = non_maximum_suppression(image_harris, nms_window)
-    image_harris_nms[harris_nms_mask == np.max(harris_nms_mask)] = [0, 0, 255] # Window size of 64 was tested to return roughly 100 points on our frame
+    image_harris_nms[harris_nms_mask == np.max(harris_nms_mask)] = [255, 255, 255] # Window size of 64 was tested to return roughly 100 points on our frame
     # utils.cvshow("result", image_harris_nms)
 
     return feature_points, image_harris_nms

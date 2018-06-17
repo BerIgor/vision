@@ -10,5 +10,5 @@ def perform(frames):
         ref_points, seq_points = q6.perform_q6(frames[0], frame)
         transformations.append(q7.calc_transform_ransac(ref_points, seq_points))
 
-    stabilized_images = q5.perform(frames, transformations)
+    stabilized_images = q5.stabilize_frames(frames, transformations)
     return stabilized_images
