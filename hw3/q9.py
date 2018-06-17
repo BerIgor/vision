@@ -161,7 +161,7 @@ def smooth_and_filter(truncated_window_list):
         truncated_smoothed_window_list.append(np.matmul(c, e_stab)) # result is win stabilized
 
 def ransac_on_windows(win, smooth_win):
-    
+    placeholder=1
 
 if __name__ == "__main__":
     # Test q9

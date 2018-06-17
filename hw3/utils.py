@@ -94,6 +94,39 @@ def video_save_frame(frame, main_dir, sub_dir, frame_number):
     cv.imwrite(path, frame)
     return
 
+def is_frame_good_pixel_count(frame):
+    flat = np.sum(frame, 2)
+    non_zeros = np.count_nonzero(flat)
+    # print(np.size(flat))
+    # print("size == " + str(non_zeros))
+    if non_zeros < 241920:
+        return False
+    return True
+
+
+def is_frame_good_corner_check(frame, window_size=40, p=0.95):
+    flat = np.sum(frame, 2)
+    rows = frame.shape[0]
+    cols = frame.shape[1]
+
+    pixels_in_window = 2 * window_size
+    min_non_zeros = int(p * pixels_in_window)
+
+    non_zeros_clt = np.count_nonzero(flat[:window_size, :window_size])
+    non_zeros_clb = np.count_nonzero(flat[-window_size:, :window_size])
+    non_zeros_crt = np.count_nonzero(flat[:window_size, -window_size:])
+    non_zeros_crb = np.count_nonzero(flat[-window_size:, -window_size])
+
+    corners = [non_zeros_clt, non_zeros_clb, non_zeros_crt, non_zeros_crb]
+    counter = 0
+    for corner in corners:
+        if corner < min_non_zeros:
+            counter += 1
+
+    if counter > 1:
+        return False
+    return True
+
 def get_all_video_frames(video_path, rotate=False):
     video_reader = cv.VideoCapture(video_path)
     frames = list()
@@ -108,3 +141,13 @@ def get_all_video_frames(video_path, rotate=False):
 
         frames.append(np.uint8(current_frame))
     return frames
+
+
+
+"""
+    total_pixels = np.size(frame)
+    black_pixels = total_pixels - non_zeros
+    if black_pixels > 207360:
+        return False
+    return True
+"""

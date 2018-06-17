@@ -85,30 +85,43 @@ if __name__ == "__main__":
     # TODO: Complete
 
     # Q8
-    q8_all_frame_list = get_all_video_frames(source_video_path)
+    q8_all_frame_list = utils.get_all_video_frames(source_video_path)
 
     q8_trans_list = list()
+    q8_stab_list = list()
     i = 0
     for frame in q8_all_frame_list:
+        tries = 5
+        good_frame = False
         ref_feature_points, matched_points = q6.perform_q6(q8_all_frame_list[0], frame, mask)
-        q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
-        q8_trans_list.append(q8_transformation)
-        print(len(q8_trans_list))
-        a, b = q8_trans_list[i]
-        stab_image = q5.stabilize_image_cv(frame, a, b)
-        utils.video_save_frame(stab_image, pwd, 'stab_8', i)
-        i += 1
+        while good_frame is False and tries > 0:
+            print(tries)
+            # ref_feature_points, matched_points = q6.perform_q6(q8_all_frame_list[0], frame, mask)
+            q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
+            # q8_trans_list.append(q8_transformation)
+            # a, b = q8_trans_list[i]
+            a, b = q8_transformation
+            stab_image = q5.stabilize_image_cv(frame, a, b)
+            # good_frame = utils.is_frame_good_pixel_count(stab_image)
+            good_frame = utils.is_frame_good_corner_check(stab_image, window_size=30, p=0.95)
+            tries -= 1
 
-    print(len(q8_all_frame_list))
-    print(len(q8_trans_list))
+        if tries == 0:
+            continue
+        else:
+            q8_stab_list.append(stab_image)
+            utils.video_save_frame(stab_image, pwd, 'stab_8', i)
+            i += 1
 
+    make_normal_video(pwd + '/our_data/q8_stab.avi', q8_stab_list)
+    """
     q8_stab_list = list()
     for i in range(len(q8_all_frame_list)):
         a, b = q8_trans_list[i]
         stab_image = q5.stabilize_image_cv(q8_all_frame_list[i], a, b)
         utils.video_save_frame(stab_image, pwd, "stab_8", i)
         q8_stab_list.append(stab_image)
-
+    """
     make_normal_video(pwd + '/our_data/q8_ariel_stable.avi', q8_stab_list)
     exit()
 
