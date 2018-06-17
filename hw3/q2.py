@@ -26,6 +26,7 @@ def harris_and_nms(image, nms_window=30):
     """
 
     # Find edges using Harris
+    # print(image.shape)
     image_harris = harris_detect(prep_image_for_harris(image))
     # utils.cvshow("Harris", image_harris)
 
@@ -36,6 +37,7 @@ def harris_and_nms(image, nms_window=30):
     # utils.cvshow("result", image_harris_nms)
 
     return feature_points, image_harris_nms
+
 
 def non_maximum_suppression(img, win_size):
     """
@@ -53,8 +55,8 @@ def non_maximum_suppression(img, win_size):
     for row in range(0, img.shape[0], win_size):
         for col in range(0, img.shape[1], win_size):
             # Extract current window
-            row_next = row + win_size if (row + win_size <= img.shape[0]) else img.shape[0]
-            col_next = col + win_size if (col + win_size <= img.shape[1]) else img.shape[1]
+            row_next = row + win_size if (row + win_size < img.shape[0]) else img.shape[0] - 1
+            col_next = col + win_size if (col + win_size < img.shape[1]) else img.shape[1] - 1
             img_win = img[row:row_next, col:col_next]
             # NMS on window:
             win_max = np.amax(img_win)
@@ -62,10 +64,10 @@ def non_maximum_suppression(img, win_size):
                 for win_col in range(img_win.shape[1]):
                     if (img_win[win_row, win_col] == win_max):
                         img_win[win_row, win_col] = img_max
-                        max_points_list.append([col+win_col, row+win_row]) # X - col, Y - row
+                        max_points_list.append([col+win_col, row+win_row]) # X - col, Y - row   << this is what we had
+                        # max_points_list.append([row + win_row, col + win_col])  # X - col, Y - row
                     else:
                         img_win[win_row, win_col] = 0
-
 
             suppressed_img[row:row_next, col:col_next] = img_win
 

@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import interpolate
+import cv2
 from hw3 import utils
 from scipy.interpolate import RegularGridInterpolator
 
@@ -9,9 +10,22 @@ def perform(frames, transformations):
     for i in range(len(frames)):
         frame = frames[i]
         a, b = transformations[i]
-        stabilized_image = stabilize_image(frame, a, b)
+        stabilized_image = stabilize_image_cv(frame, a, b)
         stabilized_images.append(stabilized_image)
     return stabilized_images
+
+
+def stabilize_image_cv(frame, a, b):
+
+    transformation_mat = np.hstack((a, b))
+    transformation_mat = np.float32(transformation_mat)
+
+    rows = frame.shape[0]
+    cols = frame.shape[1]
+
+    # transformed_frame = np.zeros((frame.shape[1], frame.shape[0], frame.shape[2]))
+    transformed_frame = cv2.warpAffine(frame, transformation_mat, (cols, rows), flags=cv2.INTER_LINEAR)
+    return transformed_frame
 
 
 def stabilize_image(image, a, b):
@@ -22,7 +36,6 @@ def stabilize_image(image, a, b):
     :param b: is the b matrix of an affine transformation
     :return: a stabilized image
     """
-    print(str(a) + " " + str(b))
     stabilized_image = interpolate_image_under_transformation(image, a, b)  # igor's method is 3
     return stabilized_image
 
@@ -49,7 +62,8 @@ def interpolate_image_under_transformation(image, a, b):
 def interpolate_image_under_transformation(image, a, b):
     grid_r, grid_c = np.mgrid[range(image.shape[0]), range(image.shape[1])]
     z = np.array([grid_r.flatten(), grid_c.flatten()])
-    zz = np.matmul(a, z) + b
+    ai = np.linalg.inv(a)
+    zz = np.matmul(ai, z - b)
     grid_r_new = np.reshape(zz[0, :], grid_r.shape)
     grid_c_new = np.reshape(zz[1, :], grid_c.shape)
     points = np.random.rand(image.shape[0] * image.shape[1], 2)

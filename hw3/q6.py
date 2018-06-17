@@ -1,6 +1,6 @@
 import numpy as np
 import cv2 as cv
-from hw3 import q2, utils
+from hw3 import q2, q3, utils
 
 
 def match_images(ref_image, ref_points, target_image, target_points, search_window, match_window):
@@ -31,7 +31,7 @@ def match_images(ref_image, ref_points, target_image, target_points, search_wind
             # utils.cvshow("template", template)
             best_point = get_best_matching_point(template, target_image, points_in_window, match_window)
         matched_points.append(best_point)
-    print("ref points num: " + str(len(ref_points)) + "\nfiltered ref points num: " + str(len(filtered_ref_points))+ "\nAvg of feature points in matching window: " + str(sum(points_in_winow_num)/len(filtered_ref_points)))
+    # print("ref points num: " + str(len(ref_points)) + "\nfiltered ref points num: " + str(len(filtered_ref_points))+ "\nAvg of feature points in matching window: " + str(sum(points_in_winow_num)/len(filtered_ref_points)))
     return filtered_ref_points, matched_points
 
 def get_best_matching_point(template, target_image, points, match_window):
@@ -57,16 +57,17 @@ def calc_ssd_list(template, image, points, match_window):
     :param match_window: (W in the assignment) is the window in which to search
     :return: returns a list with the minimal ssd values in each sub-image
     """
-    # ssd = cv.matchTemplate(image, template, cv.TM_SQDIFF)
     ssd_list = list()
     for point in points:
-        # window = get_sub_image(ssd, point, match_window)
-        # ssd_list.append(np.min(window))
+
         image_ssd_sub_win = get_sub_image(image, point, match_window)
         # Truncate image according to template shape Image.shape must be >= template.shape
+
         template_new_rowmax = image_ssd_sub_win.shape[0] if template.shape[0] > image_ssd_sub_win.shape[0] else template.shape[0]
         template_new_colmax = image_ssd_sub_win.shape[1] if template.shape[1] > image_ssd_sub_win.shape[1] else template.shape[1]
+
         template = template[0:template_new_rowmax, 0:template_new_colmax]
+
         ssd_score = cv.matchTemplate(image_ssd_sub_win, template, cv.TM_SQDIFF)
         ssd_list.append(np.max(ssd_score)) # As it's calculated per window, min and max are the same
 
@@ -124,7 +125,8 @@ def filter_points_not_in_window(ref_point, points, window_size):
             filtered_list.append(point)
     return filtered_list
 
-def perform_q6(ref_image,target_image):
+
+def perform_q6(ref_image, target_image, mask):
     """
     Receives a reference image and a target image and returns 10 automatically matched points between them (composition of all sub functions)
     :param ref_image: is the reference image
@@ -133,15 +135,34 @@ def perform_q6(ref_image,target_image):
     """
 
     # Window for optimal matching
-    nms_window = 40 # Full Window size
-    search_win = 20  # 0.5*L - Half Window size
-    ssd_win = 5  # 0.5*W - Half Window size
+    nms_window = 30  # Full Window size
+    search_win = 10  # 0.5*L - Half Window size
+    ssd_win = 10  # 0.5*W - Half Window size
 
     # Extract feature points for both images:
     ref_feature_points, ref_features_img = q2.harris_and_nms(ref_image, nms_window)
     target_feature_points, target_features_img = q2.harris_and_nms(target_image, nms_window)
-
+    # filter out points that do not correspond to points in the mask
+    f_ref_points, f_seq_points = filter_points_not_in_mask(ref_feature_points, target_feature_points, mask)
+    # marked_ref = q3.mark_points(ref_image, f_ref_points)
+    # marked_seq = q3.mark_points(target_image, f_seq_points)
+    # utils.compare_two_images(marked_ref, marked_seq, "comp")
+    if len(f_ref_points) == 0:
+        print("all points filtered")
+        f_ref_points = ref_feature_points
+        f_seq_points = target_feature_points
     # utils.compare_two_images(ref_features_img, target_features_img, "Harris and nms - ref vs frame")
 
-    return match_images(ref_image, ref_feature_points, target_image, target_feature_points, search_win, ssd_win)
+    return match_images(ref_image, f_ref_points, target_image, f_seq_points, search_win, ssd_win)
 
+
+def filter_points_not_in_mask(ref_points, seq_points, mask):
+    new_ref_points = list()
+    new_seq_points = list()
+    for i in range(len(ref_points)):
+        c, r = ref_points[i]
+        if mask[r, c].any() > 0:
+            new_ref_points.append(ref_points[i])
+            new_seq_points.append(seq_points[i])
+
+    return new_ref_points, new_seq_points
