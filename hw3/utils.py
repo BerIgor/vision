@@ -93,3 +93,18 @@ def video_save_frame(frame, main_dir, sub_dir, frame_number):
     path = str(main_dir) + '/our_data/' + str(sub_dir) + '/' + str(frame_number) + '.jpg'
     cv.imwrite(path, frame)
     return
+
+def get_all_video_frames(video_path, rotate=False):
+    video_reader = cv.VideoCapture(video_path)
+    frames = list()
+    more_frames = True
+    while more_frames:
+        more_frames, current_frame = video_reader.read()
+        if more_frames is False:
+            break
+
+        if rotate:
+            current_frame = np.transpose(current_frame, (1, 0, 2))
+
+        frames.append(np.uint8(current_frame))
+    return frames
