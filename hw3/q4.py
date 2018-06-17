@@ -2,6 +2,23 @@ import numpy as np
 from hw3 import utils
 
 
+def perform():
+    transformations = get_seq_transformation(utils.get_frames_points())
+    for trans in transformations:
+        a, b = trans
+
+        low_values_flags = a < 0.005
+        a[low_values_flags] = 0
+
+        low_values_flags = b < 0.005
+        b[low_values_flags] = 0
+
+        m = np.hstack((a, b))
+        print("===========================")
+        np.set_printoptions(precision=2)
+        print(m.astype(np.float))
+
+
 def get_transformation(points_reference, points_transformed):
     """
     THE POINTS MUST BE (X, Y) for row and column

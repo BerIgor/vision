@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
-
+import os
 
 ref_feature_points = [(297, 187), (303, 236), (447, 92), (421, 309), (459, 360), (505, 154)]
 frame1_feature_points = [(304, 148), (308, 199), (459, 38), (419, 256), (450, 299), (510, 116)]
@@ -17,6 +17,22 @@ frames_points = [ref_feature_points, frame1_feature_points, frame2_feature_point
 """
 The following two functions are here to convert our (x,y) lists to (r,c) lists
 """
+
+
+def hstack_frames(frame_list):
+    merged = cv.hconcat(tuple(frame_list))
+    return merged
+
+
+def rotate_frames(frame_list):
+    rotated_frame_list = list()
+    for frame in frame_list:
+        rotated_frame_list.append(np.transpose(frame, (1, 0, 2)))
+    return rotated_frame_list
+
+
+def get_pwd():
+    return os.getcwd().replace('\\', '//')
 
 
 def invert_point_lists(point_lists):

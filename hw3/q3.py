@@ -26,7 +26,10 @@ def perform(frames):
         points = frames_points[i]
         marked_frame = mark_points(frame, points)
         iml.append(marked_frame)
-    utils.display_images(iml)
+
+    iml = utils.rotate_frames(iml)
+    iml = utils.hstack_frames(iml)
+    cv.imwrite(utils.get_pwd() + "/q3" + ".jpg", iml)
 
 
 def mark_points(image, points):
