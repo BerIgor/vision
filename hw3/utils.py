@@ -110,7 +110,6 @@ def video_save_frame(frame, main_dir, sub_dir, frame_number):
     cv.imwrite(path, frame)
     return
 
-
 def is_frame_good_pixel_count(frame):
     flat = np.sum(frame, 2)
     non_zeros = np.count_nonzero(flat)
@@ -144,7 +143,6 @@ def is_frame_good_corner_check(frame, window_size=40, p=0.95):
         return False
     return True
 
-
 def get_all_video_frames(video_path, rotate=False):
     video_reader = cv.VideoCapture(video_path)
     frames = list()
@@ -159,6 +157,7 @@ def get_all_video_frames(video_path, rotate=False):
 
         frames.append(np.uint8(current_frame))
     return frames
+
 
 
 """

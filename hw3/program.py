@@ -10,7 +10,6 @@ from hw3 import igor_playground
 # Globals
 pwd = os.getcwd().replace('\\','//')
 
-
 def get_frames_uniform(video_path, number_of_frames, rotate=False):
     video_reader = cv.VideoCapture(video_path)
     length = video_reader.get(cv.CAP_PROP_FRAME_COUNT)
@@ -23,8 +22,6 @@ def get_frames_uniform(video_path, number_of_frames, rotate=False):
             frame = np.transpose(frame, (1, 0, 2))
         frames.append(np.uint8(frame))
     return frames
-
-
 # input: output_video_path is the path where the resulting video is created
 # input: frames is a list containing frames
 # input: frame_duration is the duration in seconds each frame will be visible
