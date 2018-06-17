@@ -112,14 +112,10 @@ if __name__ == "__main__":
         ref_feature_points, matched_points = q6.perform_q6(q8_all_frame_list[0], frame, mask)
         q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
         q8_trans_list.append(q8_transformation)
-        print(len(q8_trans_list))
         a, b = q8_trans_list[i]
         stab_image = q5.stabilize_image_cv(frame, a, b)
         utils.video_save_frame(stab_image, pwd, 'stab_8', i)
         i += 1
-
-    print(len(q8_all_frame_list))
-    print(len(q8_trans_list))
 
     q8_stab_list = list()
     for i in range(len(q8_all_frame_list)):
