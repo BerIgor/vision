@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import math
-from hw3 import utils
+from hw3 import utils, q7, q5, program
 
 def perform_subspace_video_stabilization(frame_list):
     # Stages are according to the moodle note - https://moodle.technion.ac.il/mod/forum/discuss.php?d=423166
@@ -20,30 +20,35 @@ def perform_subspace_video_stabilization(frame_list):
     # # Stage 4 - Smoothing using SVD and filtering
     M_windows_list_truncated_smooth = smooth_and_filter(M_windows_list_truncated)
 
-    # Stage 5 + 6 - RANSAC and Transform on each window - 5 frames for each window except last
-    Stabillized_result = list()
+    # Stage 5 + 6 - Get transformation for each frame using RANSAC
+    frames_transformations_list = list()
     for i in range(M_windows_list_truncated_smooth):
         if i != len(M_windows_list_truncated_smooth)-1:
             # Take only the first 5 frames
-            tuncated_win = M_windows_list_truncated[i][:, 0:window_delta-1]
-            tuncated_win_smooth = M_windows_list_truncated_smooth[i][:, 0:window_delta-1]
+            truncated_win = M_windows_list_truncated[i][:, 0:window_delta-1]
+            truncated_win_smooth = M_windows_list_truncated_smooth[i][:, 0:window_delta-1]
         else:
             # Last window - take all of it
-            tuncated_win = M_windows_list_truncated[i]
-            tuncated_win_smooth = M_windows_list_truncated_smooth[i]
+            truncated_win = M_windows_list_truncated[i]
+            truncated_win_smooth = M_windows_list_truncated_smooth[i]
 
         # Extract transformation matrices using RANSAC
-        A,b = ransac_on_windows(tuncated_win, tuncated_win_smooth) # TODO - Implement function that finds A,b matrcies from win to smooth
+        window_transformation_list = ransac_on_windows(truncated_win, truncated_win_smooth)
 
-        # Created stabillized version of truncated window
-        # TODO - do we need to do this on the original frames or on the windows list (and if so, which list? [reg/truncated])
-        # Stabillized_result.append(stabilize_window(tuncated_win, A, b))
-        # OR
-        # Stabillized_result.append(stabilize_frame(frame_list[5*i:5*(i+1)])) # TODO - Not sure correct indices are taken
+        # Concatenate transformations list
+        frames_transformations_list = window_transformation_list if len(frames_transformations_list) == 0 else frames_transformations_list + window_transformation_list
+
+
+    # Stage 6 - Stabilize all frames using stage 5 transformations
+    stabilized_frames = list()
+    num_of_frames = len(frame_list)
+    for i in range(num_of_frames):
+        a, b = frames_transformations_list[i]
+        stabilized_frames.append(q5.stabilize_image(frame_list[i], a, b))
 
     # Stage 7 - Rebuild the entire stabillized video
-    # TODO - use q1_make_video from porgram.py or just do this in main
-
+    # output_video_path = pwd + '/our_data/ariel_stabilized_q9.mp4'
+    # program.make_normal_video(output_video_path, stabilized_frames)
 
 
 def extract_klt_features(frame_list):
@@ -161,7 +166,27 @@ def smooth_and_filter(truncated_window_list):
         truncated_smoothed_window_list.append(np.matmul(c, e_stab)) # result is win stabilized
 
 def ransac_on_windows(win, smooth_win):
-    placeholder=1
+
+    # Get dimensions - identical for both windows
+    if win.shape != smooth_win.shape:
+        raise ValueError("Input windows must have the same shape")
+    num_of_frames = win.shape[1]
+    num_of_points = win.shape[0]
+
+    transformations_list = list()
+
+    for i in range(num_of_frames):
+        win_point_list = win[:, i]
+        smooth_win_point_list = smooth_win[:, i] # TODO - is this a 1D vec or 2D
+        # Fit arrays to ransac input:
+        win_points_ransac_fitted = [(win_point_list[i], win_point_list[i+1]) for i in range(0,num_of_points,2)]
+        smooth_win_points_ransac_fitted = [(smooth_win_point_list[i], smooth_win_point_list[i+1]) for i in range(0,num_of_points,2)]
+        # Apply ransac
+        A, b = q7.calc_transform_ransac(win_points_ransac_fitted,smooth_win_points_ransac_fitted)
+        transformations_list.append((A,b))
+
+    return transformations_list
+
 
 if __name__ == "__main__":
     # Test q9
