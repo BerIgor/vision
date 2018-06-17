@@ -11,22 +11,6 @@ from hw3 import igor_playground
 pwd = os.getcwd().replace('\\','//')
 
 
-def get_all_video_frames(video_path, rotate=False):
-    video_reader = cv.VideoCapture(video_path)
-    frames = list()
-    more_frames = True
-    while more_frames:
-        more_frames, current_frame = video_reader.read()
-        if more_frames is False:
-            break
-
-        if rotate:
-            current_frame = np.transpose(current_frame, (1, 0, 2))
-
-        frames.append(np.uint8(current_frame))
-    return frames
-
-
 def get_frames_uniform(video_path, number_of_frames, rotate=False):
     video_reader = cv.VideoCapture(video_path)
     length = video_reader.get(cv.CAP_PROP_FRAME_COUNT)
@@ -104,26 +88,43 @@ if __name__ == "__main__":
     # TODO: Complete
 
     # Q8
-    q8_all_frame_list = get_all_video_frames(source_video_path)
+    q8_all_frame_list = utils.get_all_video_frames(source_video_path)
 
     q8_trans_list = list()
+    q8_stab_list = list()
     i = 0
     for frame in q8_all_frame_list:
+        tries = 5
+        good_frame = False
         ref_feature_points, matched_points = q6.perform_q6(q8_all_frame_list[0], frame, mask)
-        q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
-        q8_trans_list.append(q8_transformation)
-        a, b = q8_trans_list[i]
-        stab_image = q5.stabilize_image_cv(frame, a, b)
-        utils.video_save_frame(stab_image, pwd, 'stab_8', i)
-        i += 1
+        while good_frame is False and tries > 0:
+            print(tries)
+            # ref_feature_points, matched_points = q6.perform_q6(q8_all_frame_list[0], frame, mask)
+            q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
+            # q8_trans_list.append(q8_transformation)
+            # a, b = q8_trans_list[i]
+            a, b = q8_transformation
+            stab_image = q5.stabilize_image_cv(frame, a, b)
+            # good_frame = utils.is_frame_good_pixel_count(stab_image)
+            good_frame = utils.is_frame_good_corner_check(stab_image, window_size=30, p=0.95)
+            tries -= 1
 
+        if tries == 0:
+            continue
+        else:
+            q8_stab_list.append(stab_image)
+            utils.video_save_frame(stab_image, pwd, 'stab_8', i)
+            i += 1
+
+    make_normal_video(pwd + '/our_data/q8_stab.avi', q8_stab_list)
+    """
     q8_stab_list = list()
     for i in range(len(q8_all_frame_list)):
         a, b = q8_trans_list[i]
         stab_image = q5.stabilize_image_cv(q8_all_frame_list[i], a, b)
         utils.video_save_frame(stab_image, pwd, "stab_8", i)
         q8_stab_list.append(stab_image)
-
+    """
     make_normal_video(pwd + '/our_data/q8_ariel_stable.avi', q8_stab_list)
     exit()
 
