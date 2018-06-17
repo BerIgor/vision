@@ -1,6 +1,8 @@
 import cv2 as cv
 import numpy as np
 from hw3 import utils, q2
+from numpy import ascontiguousarray
+
 
 # BGR colors
 red = (0, 0, 255)
@@ -18,6 +20,7 @@ max_points = 6
 def perform(frames):
     iml = list()
     frames_points = utils.get_frames_points()
+
     for i in range(len(frames)):
         frame = frames[i]
         points = frames_points[i]
@@ -36,16 +39,19 @@ def mark_points(image, points):
     """
     # if len(points) > max_points:
     #     raise ValueError('More than 6 points in points')
+    new_image = np.copy(image, 'C')
     for i in range(len(points)):
         option = int(i/len(colors))
         c_ind = i % len(colors)
+        # print(points[i])
         if option == 0:
-            cv.circle(image, tuple(points[i]), 5, colors[c_ind], -1)
+            new_image = np.ascontiguousarray(image, dtype=np.uint8)
+            cv.circle(new_image, tuple(points[i]), 5, colors[c_ind], -1)
         else:
             top_left, bottom_right = get_rect(points[i])
-            cv.rectangle(image, top_left, bottom_right, colors[c_ind], -1)
+            cv.rectangle(new_image, top_left, bottom_right, colors[c_ind], -1)
 
-    return image
+    return new_image
 
 
 def get_rect(point, edge=5):

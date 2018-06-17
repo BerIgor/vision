@@ -4,12 +4,14 @@ import math
 import numpy as np
 import random
 from hw3 import *
+from hw3 import igor_playground
+
 
 # Globals
 pwd = os.getcwd().replace('\\','//')
 
 
-def get_all_video_frames(video_path):
+def get_all_video_frames(video_path, rotate=False):
     video_reader = cv.VideoCapture(video_path)
     frames = list()
     more_frames = True
@@ -17,12 +19,15 @@ def get_all_video_frames(video_path):
         more_frames, current_frame = video_reader.read()
         if more_frames is False:
             break
-        frames.append(current_frame)
 
+        if rotate:
+            current_frame = np.transpose(current_frame, (1, 0, 2))
+
+        frames.append(np.uint8(current_frame))
     return frames
 
 
-def get_frames_uniform(video_path, number_of_frames):
+def get_frames_uniform(video_path, number_of_frames, rotate=False):
     video_reader = cv.VideoCapture(video_path)
     length = video_reader.get(cv.CAP_PROP_FRAME_COUNT)
     interval = math.floor(length/number_of_frames)
@@ -30,7 +35,9 @@ def get_frames_uniform(video_path, number_of_frames):
     for i in range(number_of_frames):
         video_reader.set(cv.CAP_PROP_POS_FRAMES, i*interval)
         _, frame = video_reader.read()
-        frames.append(frame)
+        if rotate:
+            frame = np.transpose(frame, (1, 0, 2))
+        frames.append(np.uint8(frame))
     return frames
 
 
@@ -53,7 +60,6 @@ def q1_make_video(output_video_path, frames, frame_duration, fps=30):
 
 
 def make_normal_video(output_video_path, frames):
-
     rows = frames[0].shape[0]
     cols = frames[0].shape[1]
     video_format = cv.VideoWriter_fourcc(*"XVID")
@@ -66,11 +72,70 @@ def make_normal_video(output_video_path, frames):
 if __name__ == "__main__":
     # close all open windows
     cv.destroyAllWindows()
-
     print("Welcome to hw3")
-    source_video_path = pwd + '/our_data/milk.mp4'
-    # frame_list = get_frames_uniform(source_video_path, 7)
-    frame_list = get_all_video_frames(source_video_path)
+
+    source_video_path = pwd + '/our_data/ariel.mp4'
+    frame_list = get_frames_uniform(source_video_path, 7, rotate=False)
+
+    # Q3
+    q3_frame_list = get_frames_uniform(source_video_path, 7, rotate=False)
+    q3.perform(q3_frame_list)
+
+    # Q4
+    q4_transformations = q4.get_seq_transformation(utils.get_frames_points())
+
+    # Q5
+    q5_stabilized_frames = q5.perform(frame_list, q4_transformations)
+    """
+    frames_points = utils.get_frames_points()
+    for i in range(len(q5_stabilized_frames)):
+        q3.mark_points(q5_stabilized_frames[i], frames_points[i])
+        utils.cvshow("stab2", q5_stabilized_frames[i])
+    """
+    make_normal_video(pwd + '/our_data/q5_ariel_stable.avi', q5_stabilized_frames)
+
+    # Q6
+    mask = cv.imread(pwd + '/our_data/masked_frames/0.jpg')
+    mask = np.transpose(mask, (1, 0, 2))
+    print(len(frame_list))
+    for frame in frame_list:
+        print("frame")
+        ref_feature_points, matched_points = q6.perform_q6(frame_list[0], frame, mask)
+    # TODO: Complete
+
+    # Q8
+    q8_all_frame_list = get_all_video_frames(source_video_path)
+
+    q8_trans_list = list()
+    i = 0
+    for frame in q8_all_frame_list:
+        ref_feature_points, matched_points = q6.perform_q6(q8_all_frame_list[0], frame, mask)
+        q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
+        q8_trans_list.append(q8_transformation)
+        print(len(q8_trans_list))
+        a, b = q8_trans_list[i]
+        stab_image = q5.stabilize_image_cv(frame, a, b)
+        utils.video_save_frame(stab_image, pwd, 'stab_8', i)
+        i += 1
+
+    print(len(q8_all_frame_list))
+    print(len(q8_trans_list))
+
+    q8_stab_list = list()
+    for i in range(len(q8_all_frame_list)):
+        a, b = q8_trans_list[i]
+        stab_image = q5.stabilize_image_cv(q8_all_frame_list[i], a, b)
+        utils.video_save_frame(stab_image, pwd, "stab_8", i)
+        q8_stab_list.append(stab_image)
+
+    make_normal_video(pwd + '/our_data/q8_ariel_stable.avi', q8_stab_list)
+    exit()
+
+    frame_list = get_all_video_frames(source_video_path, rotate=True)
+    # masked_frame_list = get_all_video_frames(str(pwd) + '/our_data/ariel_segmented_full_length.avi')
+    print(np.shape(frame_list[0]))
+    igor_playground.stabilize_using_mask(frame_list, pwd)
+    exit()
     """
     points_to_mark = utils.get_frames_points()
     for i in range(len(frame_list)):

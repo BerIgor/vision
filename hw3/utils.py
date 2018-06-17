@@ -89,7 +89,7 @@ def compare_two_images(img1, img2, title):
     cvshow(title, merged)
 
 
-def video_save_frame(frame, dir, sub_dir, frame_number):
-    path = str(dir) + 'our_data/' + str(sub_dir) + '/' + str(frame_number) + '.jpg'
+def video_save_frame(frame, main_dir, sub_dir, frame_number):
+    path = str(main_dir) + '/our_data/' + str(sub_dir) + '/' + str(frame_number) + '.jpg'
     cv.imwrite(path, frame)
     return

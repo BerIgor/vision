@@ -18,21 +18,13 @@ def perform(frames, transformations):
 def stabilize_image_cv(frame, a, b):
 
     transformation_mat = np.hstack((a, b))
-    transformed_frame = np.zeros((frame.shape[1], frame.shape[0], frame.shape[2]))
+    transformation_mat = np.float32(transformation_mat)
 
-    for layer in range(frame.shape[2]):
-        frame_layer = frame[:, :, layer]
-        print("here")
-        print(frame_layer.shape)
+    rows = frame.shape[0]
+    cols = frame.shape[1]
 
-        curr_transformed_frame = cv2.warpAffine(src=frame_layer, M=transformation_mat,
-                                                dsize=frame_layer.shape,
-                                                flags=cv2.INTER_LINEAR)
-
-        transformed_frame[:, :, layer] = curr_transformed_frame
-        print("there")
-        print(curr_transformed_frame.shape)
-
+    # transformed_frame = np.zeros((frame.shape[1], frame.shape[0], frame.shape[2]))
+    transformed_frame = cv2.warpAffine(frame, transformation_mat, (cols, rows), flags=cv2.INTER_LINEAR)
     return transformed_frame
 
 
@@ -44,7 +36,6 @@ def stabilize_image(image, a, b):
     :param b: is the b matrix of an affine transformation
     :return: a stabilized image
     """
-    print(str(a) + " " + str(b))
     stabilized_image = interpolate_image_under_transformation(image, a, b)  # igor's method is 3
     return stabilized_image
 
