@@ -28,11 +28,10 @@ def match_images(ref_image, ref_points, target_image, target_points, search_wind
             best_point = points_in_window[0]
         else:
             template = get_sub_image(ref_image, ref_point, match_window)
-            # utils.cvshow("template", template)
             best_point = get_best_matching_point(template, target_image, points_in_window, match_window)
         matched_points.append(best_point)
-    # print("ref points num: " + str(len(ref_points)) + "\nfiltered ref points num: " + str(len(filtered_ref_points))+ "\nAvg of feature points in matching window: " + str(sum(points_in_winow_num)/len(filtered_ref_points)))
     return filtered_ref_points, matched_points
+
 
 def get_best_matching_point(template, target_image, points, match_window):
     """
@@ -126,28 +125,27 @@ def filter_points_not_in_window(ref_point, points, window_size):
     return filtered_list
 
 
-def perform_q6(ref_image, target_image, mask, ref_points=None):
+def perform_q6(ref_image, target_image, mask, ref_points=None, search_win=5, ssd_win=40, nms_window=20):
     """
     Receives a reference image and a target image and returns 10 automatically matched points between them (composition of all sub functions)
     :param ref_image: is the reference image
     :param target_image: is the target image
+    :param mask:
+    :param ref_points:
     :return: 2 lists of points. Pairs are matched by list index
     """
-
-    # Window for optimal matching
-    nms_window = 30  # Full Window size
-    search_win = 10  # 0.5*L - Half Window size
-    ssd_win = 10  # 0.5*W - Half Window size
 
     # Extract feature points for both images:
     if ref_points is None:
         ref_feature_points, ref_features_img = q2.harris_and_nms(ref_image, nms_window)
     else:
+        print("predefined")
         ref_feature_points = ref_points
 
     target_feature_points, target_features_img = q2.harris_and_nms(target_image, nms_window)
+
     # filter out points that do not correspond to points in the mask
-    f_ref_points, f_seq_points = filter_points_not_in_mask(ref_feature_points, target_feature_points, mask)
+    f_ref_points, f_seq_points = filter_points_not_in_mask(ref_feature_points, mask, seq_points=target_feature_points)
     # marked_ref = q3.mark_points(ref_image, f_ref_points)
     # marked_seq = q3.mark_points(target_image, f_seq_points)
     # utils.compare_two_images(marked_ref, marked_seq, "comp")
@@ -160,13 +158,102 @@ def perform_q6(ref_image, target_image, mask, ref_points=None):
     return match_images(ref_image, f_ref_points, target_image, f_seq_points, search_win, ssd_win)
 
 
-def filter_points_not_in_mask(ref_points, seq_points, mask):
+def filter_points_not_in_mask(ref_points, mask, seq_points=None):
     new_ref_points = list()
     new_seq_points = list()
     for i in range(len(ref_points)):
         c, r = ref_points[i]
         if mask[r, c].any() > 0:
             new_ref_points.append(ref_points[i])
-            new_seq_points.append(seq_points[i])
+            if seq_points is not None:
+                new_seq_points.append(seq_points[i])
 
     return new_ref_points, new_seq_points
+
+
+def answer_question2(frame_list):
+    mask = cv.imread(utils.get_pwd() + '/our_data/masked_frames/0.jpg')
+    mask = np.transpose(mask, (1, 0, 2))
+
+    # ref_feature_points, ref_features_img = q2.harris_and_nms(frame_list[0], 20)
+    # ref_feature_points, _ = filter_points_not_in_mask(ref_feature_points, mask)
+
+    for i in range(1, len(frame_list)):
+        filtered_ref_points, matched_points = perform_q6(frame_list[0], frame_list[i], mask,
+                                                         ssd_win=20,
+                                                         search_win=50,
+                                                         nms_window=50)
+
+        f = frame_list[0].copy()
+        ref_frame_marked = q3.mark_points(f, filtered_ref_points[0:9])
+        seq_frame_marked = q3.mark_points(frame_list[i], matched_points[0:9])
+        utils.compare_two_images(ref_frame_marked, seq_frame_marked, "No mask")
+
+
+def answer_question(frame_list):
+    mask = cv.imread(utils.get_pwd() + '/our_data/masked_frames/0.jpg')
+    mask = np.transpose(mask, (1, 0, 2))
+
+    # ref_feature_points, ref_features_img = q2.harris_and_nms(frame_list[0], nms_window=10)
+    # ref_feature_points, _ = filter_points_not_in_mask(ref_feature_points, mask)
+
+    orig_ref_points = list()
+    has_orig = False
+
+    ref_frame_points_lists = list()
+    seq_frame_points_lists = list()
+    for i in range(1, len(frame_list)):
+        ref_points, matched_points = perform_q6(frame_list[0], frame_list[i], mask,
+                                                ssd_win=30,
+                                                search_win=50,
+                                                nms_window=8)
+
+        if has_orig is False:
+            orig_ref_points = ref_points
+            orig_ref_points, _ = filter_points_not_in_mask(orig_ref_points, mask)
+            has_orig = True
+
+        ref_frame_points_lists.append(ref_points)
+        seq_frame_points_lists.append(matched_points)
+        orig_ref_points = _filter_points_not_in_points(orig_ref_points, ref_points)
+
+    final_seq_points_lists = list()
+    final_seq_points_lists.append(orig_ref_points)
+    for i in range(len(ref_frame_points_lists)):
+        seq_points_list = list()
+        for ref_point in orig_ref_points:
+            index = ref_frame_points_lists[i].index(ref_point)
+            seq_points_list.append((seq_frame_points_lists[i])[index])
+
+        final_seq_points_lists.append(seq_points_list)
+
+    marked_frame_list = list()
+    i = 0
+    for point_list in final_seq_points_lists:
+        f = frame_list[i].copy()
+
+        print(len(point_list))
+        marked_frame = q3.mark_points(f, point_list[0:10])
+        marked_frame_list.append(marked_frame)
+        i += 1
+
+    marked_frame_list = utils.rotate_frames(marked_frame_list)
+    final = utils.hstack_frames(marked_frame_list, reverse=True)
+
+    cv.imwrite(utils.get_pwd() + "/q6" + ".jpg", final)
+
+
+def _filter_points_not_in_points(ref_points_base, ref_points_current):
+    """
+
+    :param ref_points_base:
+    :param ref_points_current:
+    :return:
+    """
+    new_base_points = list()
+    for base_point in ref_points_base:
+        if base_point in ref_points_current:
+            new_base_points.append(base_point)
+
+    return new_base_points
+

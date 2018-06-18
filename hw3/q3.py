@@ -8,11 +8,11 @@ from numpy import ascontiguousarray
 red = (0, 0, 255)
 green = (0, 255, 0)
 blue = (255, 0, 0)
-black = (0, 0, 0)
+yellow = (0, 255, 255)
 white = (255,255,255)
 
 
-colors = [red, green, blue, black, white]
+colors = [red, green, blue, yellow, white]
 
 max_points = 6
 
@@ -28,7 +28,7 @@ def perform(frames):
         iml.append(marked_frame)
 
     iml = utils.rotate_frames(iml)
-    iml = utils.hstack_frames(iml)
+    iml = utils.hstack_frames(iml, reverse=True)
     cv.imwrite(utils.get_pwd() + "/q3" + ".jpg", iml)
 
 
@@ -42,19 +42,20 @@ def mark_points(image, points):
     """
     # if len(points) > max_points:
     #     raise ValueError('More than 6 points in points')
-    new_image = np.copy(image, 'C')
+    # new_image = image.copy()
+    # new_image = image
     for i in range(len(points)):
         option = int(i/len(colors))
         c_ind = i % len(colors)
-        # print(points[i])
+
         if option == 0:
-            new_image = np.ascontiguousarray(image, dtype=np.uint8)
-            cv.circle(new_image, tuple(points[i]), 5, colors[c_ind], -1)
+            image = np.ascontiguousarray(image, dtype=np.uint8)
+            cv.circle(image, tuple(points[i]), 5, colors[c_ind], -1)
         else:
             top_left, bottom_right = get_rect(points[i])
-            cv.rectangle(new_image, top_left, bottom_right, colors[c_ind], -1)
+            cv.rectangle(image, top_left, bottom_right, colors[c_ind], -1)
 
-    return new_image
+    return image
 
 
 def get_rect(point, edge=5):

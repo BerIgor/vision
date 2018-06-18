@@ -19,8 +19,11 @@ The following two functions are here to convert our (x,y) lists to (r,c) lists
 """
 
 
-def hstack_frames(frame_list):
-    merged = cv.hconcat(tuple(frame_list))
+def hstack_frames(frame_list, reverse=False):
+    if reverse:
+        merged = cv.hconcat(tuple(reversed(frame_list)))
+    else:
+        merged = cv.hconcat(tuple(frame_list))
     return merged
 
 
