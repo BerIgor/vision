@@ -164,6 +164,24 @@ def get_all_video_frames(video_path, rotate=False):
     return frames
 
 
+def make_normal_video(output_video_path, frames):
+    rows = frames[0].shape[0]
+    cols = frames[0].shape[1]
+    video_format = cv.VideoWriter_fourcc(*"XVID")
+    video_writer = cv.VideoWriter(output_video_path, video_format, 30, (cols, rows))
+    for frame in frames:
+        video_writer.write(np.uint8(frame))
+    video_writer.release()
+
+def make_video_from_image_files(image_files_dir, rotate = False):
+    images_path = get_pwd() + '/our_data/' + image_files_dir + '/'
+    frame_list = [cv.imread(images_path + img) for img in os.listdir(images_path) if os.path.isfile(img)]
+    if rotate:
+        frame_list = [np.transpose(frame, (1, 0, 2)) for frame in frame_list]
+    make_normal_video(images_path + 'vid.avi',frame_list)
+
+
+
 
 """
     total_pixels = np.size(frame)
