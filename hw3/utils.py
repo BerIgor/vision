@@ -136,10 +136,11 @@ def is_frame_good_corner_check(frame, window_size=40, p=0.95):
     corners = [non_zeros_clt, non_zeros_clb, non_zeros_crt, non_zeros_crb]
     counter = 0
     for corner in corners:
+        print(corner)
         if corner < min_non_zeros:
             counter += 1
 
-    if counter > 3:
+    if counter >= 3:
         return False
     return True
 

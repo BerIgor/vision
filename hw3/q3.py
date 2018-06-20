@@ -1,7 +1,6 @@
 import cv2 as cv
 import numpy as np
 from hw3 import utils, q2
-from numpy import ascontiguousarray
 
 
 # BGR colors

@@ -2,9 +2,7 @@ import sys, os
 import cv2 as cv
 import math
 import numpy as np
-import random
 from hw3 import *
-from hw3 import igor_playground
 
 
 # Globals
@@ -22,6 +20,7 @@ def get_frames_uniform(video_path, number_of_frames, rotate=False):
             frame = np.transpose(frame, (1, 0, 2))
         frames.append(np.uint8(frame))
     return frames
+
 # input: output_video_path is the path where the resulting video is created
 # input: frames is a list containing frames
 # input: frame_duration is the duration in seconds each frame will be visible
@@ -71,10 +70,9 @@ if __name__ == "__main__":
 
     # Q5
     q5.perform(frame_list, q4_transformations)
-    # TODO: Remove the thing below and do it in q5.perform
     q5_stabilized_frames = q5.stabilize_frames(frame_list, q4_transformations)
-    # make_normal_video(pwd + '/q5_ariel_stable.avi', q5_stabilized_frames)
     q1_make_video(pwd + '/q5_ariel_stable.avi', q5_stabilized_frames, 1)
+
     # Q6
     q6.answer_question(frame_list)
 
@@ -117,15 +115,19 @@ if __name__ == "__main__":
     for frame in full_frame_list:
         tries = 5
         good_frame = False
-        ref_feature_points, matched_points = q6.perform_q6(full_frame_list[0], frame, mask, search_win=5, ssd_win=20, nms_window=35)
-        while good_frame is False and tries > 0:
 
+        ref_feature_points, matched_points = q6.perform_q6(full_frame_list[0], frame, mask, search_win=5, ssd_win=20, nms_window=35)
+        if len(ref_feature_points) < 10:
+            ref_feature_points, matched_points = q6.perform_q6(full_frame_list[0], frame, mask, search_win=10,
+                                                               ssd_win=20, nms_window=35)
+        while good_frame is False and tries > 0:
+            print("tries = " + str(tries))
             q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
 
             a, b = q8_transformation
             stab_image = q5.stabilize_image_cv(frame, a, b)
 
-            good_frame = utils.is_frame_good_corner_check(stab_image, window_size=60, p=0.90)
+            good_frame = utils.is_frame_good_corner_check(stab_image, window_size=60, p=1.0)
             tries -= 1
         if tries == 0:
             continue
@@ -138,4 +140,3 @@ if __name__ == "__main__":
 
     # END
 
-    # Igor testing for q9 start here
