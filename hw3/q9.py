@@ -19,7 +19,7 @@ def perform_subspace_video_stabilization(frame_list):
     plt.matshow(M != 0, cmap=cmap)
     plt.show()
 
-    # Stage 2 + 3 - Break M to windows and truncate zeros from window
+    # Stage 2 - Break M to windows and truncate zeros from window
     frames_per_window = 50
     window_delta = 5
     M_windows_list = break_m_into_windows(M, frames_per_window, window_delta)
@@ -27,10 +27,10 @@ def perform_subspace_video_stabilization(frame_list):
    # Stage 3 - Create truncated window list
     M_windows_list_truncated = truncate_zeros_from_window_list(M_windows_list)
 
-    # # Stage 4 - Smoothing using SVD and filtering
+    # Stage 4 - Smoothing using SVD and filtering
     M_windows_list_truncated_smooth = smooth_and_filter(M_windows_list_truncated)
 
-    # Stage 5 + 6 - Get transformation for each frame using RANSAC
+    # Stage 5 - Get transformation for each frame using RANSAC
     frames_list_transformations = get_frames_transformations(M_windows_list_truncated, M_windows_list_truncated_smooth, window_delta)
 
     # Stage 6 - Stabilize all frames using stage 5 transformations
