@@ -154,18 +154,23 @@ def truncate_zeros_from_window_list(window_list):
             # No zeros in window:
             window_list_truncated.append(window)
         else:
-            truncated_win = np.zeros((2, window.shape[1]))
-            for i in range(0, window.shape[0], 2):
-                xy_rows = window[i:i + 2, :]
-                if np.count_nonzero(xy_rows) != xy_rows.size:
-                    # Zeros exist in window -> truncate row from window
-                    continue
-                else:
-                    if np.count_nonzero(truncated_win) == 0:
-                        # No rows has been entered yet
-                        truncated_win = xy_rows
-                    else:
-                        truncated_win = np.vstack((truncated_win, xy_rows))
+            # Mine
+            # truncated_win = np.zeros((2, window.shape[1]))
+            # for i in range(0, window.shape[0], 2):
+            #     xy_rows = window[i:i + 2, :]
+            #     if np.count_nonzero(xy_rows) != xy_rows.size:
+            #         # Zeros exist in window -> truncate row from window
+            #         continue
+            #     else:
+            #         if np.count_nonzero(truncated_win) == 0:
+            #             # No rows has been entered yet
+            #             truncated_win = xy_rows
+            #         else:
+            #             truncated_win = np.vstack((truncated_win, xy_rows))
+
+            # Aberdam
+            truncated_win = window[~np.all(window == 0, axis=1)]
+
             window_list_truncated.append(truncated_win)
 
     return window_list_truncated
@@ -180,16 +185,29 @@ def smooth_and_filter(truncated_window_list):
 
     for win in truncated_window_list:
         r = 9 # Irani [2002]
-        u, s, vh = svd(win, n_components=r)
-        c = np.matmul(u, np.diag(s))
-        e = vh
 
-        # Filtering
-        e_stab = e # np.zeros_like(e)
-        #e_stab[r-1, :] = filter(e[r-1, :], window_length=21, polyorder=5) #TODO - find problem/optimal values of this
-        e_stab[r-1, :] = gaussian_filter1d(e[r-1, :], sigma=((win.shape[1]/2)/math.sqrt(2))) #
+        # Mine
+        # u, s, vh = svd(win, n_components=r)
+        # c = np.matmul(u, np.diag(s))
+        # e = vh
+        #
+        # # Filtering
+        # e_stab = e # np.zeros_like(e)
+        # #e_stab[r-1, :] = filter(e[r-1, :], window_length=21, polyorder=5) #TODO - find problem/optimal values of this
+        # e_stab[r-1, :] = gaussian_filter1d(e[r-1, :], sigma=((win.shape[1]/2)/math.sqrt(2)))
+        # smoothed_win = np.matmul(c, e_stab)
 
-        smoothed_win = np.matmul(c, e_stab)
+        # Aberdam
+        u, s, v = np.linalg.svd(win)
+        # Create C & E
+        s_diag = np.diag(np.sqrt(s))
+        s_diag_r = s_diag[:r, :r]
+        c = np.dot(u[:, :r], s_diag_r)
+        e = np.dot(s_diag_r, v[:r, :])
+        #     e_stab = filter(e,window_length=5,polyorder=2,axis=1)
+        e_stab = gaussian_filter1d(e, sigma=25/(2**0.5), axis=1)
+        smoothed_win = np.dot(c, e_stab)
+
         print("Diff on frame 1 after smoothing:")
         print(np.linalg.norm(win[:, 0]-smoothed_win[:, 0]))
         truncated_smoothed_window_list.append(smoothed_win)
