@@ -29,7 +29,9 @@ def hstack_frames(frame_list, reverse=False):
 
 def rotate_frames(frame_list):
     rotated_frame_list = list()
+
     for frame in frame_list:
+        print(np.shape(frame))
         rotated_frame_list.append(np.transpose(frame, (1, 0, 2)))
     return rotated_frame_list
 
@@ -142,7 +144,7 @@ def is_frame_good_corner_check(frame, window_size=40, p=0.95):
         if corner < min_non_zeros:
             counter += 1
 
-    if counter > 1:
+    if counter > 2:
         return False
     return True
 

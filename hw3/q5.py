@@ -14,7 +14,12 @@ def perform(frames, transformations):
         stabilized_images.append(stabilized_image)
 
     stabilized_images = utils.rotate_frames(stabilized_images)
-    stabilized_images = utils.hstack_frames(stabilized_images, reverse=False)
+    new_stab_list = list()
+    for image in stabilized_images:
+        image = np.flip(image, 1)
+        new_stab_list.append(image)
+    stabilized_images = utils.hstack_frames(new_stab_list, reverse=False)
+
     cv2.imwrite(utils.get_pwd() + "/q5" + ".jpg", stabilized_images)
 
 

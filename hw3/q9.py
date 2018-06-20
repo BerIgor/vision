@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import math
-from hw3 import utils, q7, q5, program
+from hw3 import utils, q7, q5
 
 def perform_subspace_video_stabilization(frame_list):
     # Stages are according to the moodle note - https://moodle.technion.ac.il/mod/forum/discuss.php?d=423166
