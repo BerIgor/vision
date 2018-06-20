@@ -76,6 +76,10 @@ if __name__ == "__main__":
     make_normal_video(pwd + '/our_data/q5_ariel_stable.avi', q5_stabilized_frames)
 
     # Q6
+    q6.answer_question(frame_list)
+
+    exit()
+
     mask = cv.imread(pwd + '/our_data/masked_frames/0.jpg')
     mask = np.transpose(mask, (1, 0, 2))
     print(len(frame_list))

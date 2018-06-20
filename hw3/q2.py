@@ -8,11 +8,11 @@ def perform(frame_list):
     indices = [0, 3, 5]
     frame_list = [frame_list[x] for x in indices]
     for frame in frame_list:
-        features, frame_after_harris = harris_and_nms(frame, nms_window=20)
+        features, frame_after_harris = harris_and_nms(frame, nms_window=10)
         frames_with_features.append(frame_after_harris)
 
     rframes = utils.rotate_frames(frames_with_features)
-    stacked_frames = utils.hstack_frames(rframes)
+    stacked_frames = utils.hstack_frames(rframes, reverse=True)
 
     cv.imwrite(utils.get_pwd() + "/q2" + ".jpg", stacked_frames)
 
@@ -108,12 +108,14 @@ def non_maximum_suppression(img, win_size):
             img_win = img[row:row_next, col:col_next]
             # NMS on window:
             win_max = np.amax(img_win)
+            not_found = True  # TODO IGOR REMOVE
             for win_row in range(img_win.shape[0]):
                 for win_col in range(img_win.shape[1]):
-                    if img_win[win_row, win_col] == win_max:
+                    if img_win[win_row, win_col] == win_max and not_found:  # TODO IGOR REMOVE
                         max_points_list.append([col+win_col, row+win_row])  # X - col, Y - row   << this is what we had
                         max_values_list.append(img_win[win_row, win_col])
                         img_win[win_row, win_col] = img_max
+                        not_found = False  # TODO IGOR REMOVE
                     else:
                         img_win[win_row, win_col] = 0
 
