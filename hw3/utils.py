@@ -31,7 +31,6 @@ def rotate_frames(frame_list):
     rotated_frame_list = list()
 
     for frame in frame_list:
-        print(np.shape(frame))
         rotated_frame_list.append(np.transpose(frame, (1, 0, 2)))
     return rotated_frame_list
 
@@ -118,8 +117,6 @@ def video_save_frame(frame, main_dir, sub_dir, frame_number):
 def is_frame_good_pixel_count(frame):
     flat = np.sum(frame, 2)
     non_zeros = np.count_nonzero(flat)
-    # print(np.size(flat))
-    # print("size == " + str(non_zeros))
     if non_zeros < 241920:
         return False
     return True
@@ -127,8 +124,6 @@ def is_frame_good_pixel_count(frame):
 
 def is_frame_good_corner_check(frame, window_size=40, p=0.95):
     flat = np.sum(frame, 2)
-    rows = frame.shape[0]
-    cols = frame.shape[1]
 
     pixels_in_window = 2 * window_size
     min_non_zeros = int(p * pixels_in_window)
@@ -144,7 +139,7 @@ def is_frame_good_corner_check(frame, window_size=40, p=0.95):
         if corner < min_non_zeros:
             counter += 1
 
-    if counter > 2:
+    if counter > 3:
         return False
     return True
 

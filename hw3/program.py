@@ -117,16 +117,15 @@ if __name__ == "__main__":
     for frame in full_frame_list:
         tries = 5
         good_frame = False
-        ref_feature_points, matched_points = q6.perform_q6(full_frame_list[0], frame, mask)
+        ref_feature_points, matched_points = q6.perform_q6(full_frame_list[0], frame, mask, search_win=5, ssd_win=20, nms_window=35)
         while good_frame is False and tries > 0:
-            print(tries)
 
             q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
 
             a, b = q8_transformation
             stab_image = q5.stabilize_image_cv(frame, a, b)
 
-            good_frame = utils.is_frame_good_corner_check(stab_image, window_size=40, p=0.95)
+            good_frame = utils.is_frame_good_corner_check(stab_image, window_size=60, p=0.90)
             tries -= 1
         if tries == 0:
             continue
