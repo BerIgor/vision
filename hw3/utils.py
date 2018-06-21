@@ -2,22 +2,7 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-
-ref_feature_points = [(297, 187), (303, 236), (447, 92), (421, 309), (459, 360), (505, 154)]
-frame1_feature_points = [(304, 148), (308, 199), (459, 38), (419, 256), (450, 299), (510, 116)]
-frame2_feature_points = [(280, 225), (283, 263), (439, 90), (390, 302), (424, 357), (503, 166)]
-frame3_feature_points = [(235, 234), (239, 297), (399, 97), (363, 341), (393, 387), (459, 193)]
-frame4_feature_points = [(238, 233), (243, 268), (412, 71), (361, 314), (391, 358), (468, 179)]
-frame5_feature_points = [(244, 239), (245, 292), (422, 85), (360, 318), (401, 382), (470, 209)]
-frame6_feature_points = [(229, 265), (234, 299), (411, 74), (348, 298), (387, 364), (459, 209)]
-
-frames_points = [ref_feature_points, frame1_feature_points, frame2_feature_points, frame3_feature_points,
-                 frame4_feature_points, frame5_feature_points, frame6_feature_points]
-
-"""
-The following two functions are here to convert our (x,y) lists to (r,c) lists
-"""
-
+import math
 
 def hstack_frames(frame_list, reverse=False):
     if reverse:
@@ -37,6 +22,10 @@ def rotate_frames(frame_list):
 
 def get_pwd():
     return os.getcwd().replace('\\', '//')
+
+"""
+The following two functions are here to convert our (x,y) lists to (r,c) lists
+"""
 
 
 def invert_point_lists(point_lists):
@@ -61,6 +50,18 @@ End of these stupid functions
 
 
 def get_frames_points():
+    # Return manually matched points
+    ref_feature_points = [(297, 187), (303, 236), (447, 92), (421, 309), (459, 360), (505, 154)]
+    frame1_feature_points = [(304, 148), (308, 199), (459, 38), (419, 256), (450, 299), (510, 116)]
+    frame2_feature_points = [(280, 225), (283, 263), (439, 90), (390, 302), (424, 357), (503, 166)]
+    frame3_feature_points = [(235, 234), (239, 297), (399, 97), (363, 341), (393, 387), (459, 193)]
+    frame4_feature_points = [(238, 233), (243, 268), (412, 71), (361, 314), (391, 358), (468, 179)]
+    frame5_feature_points = [(244, 239), (245, 292), (422, 85), (360, 318), (401, 382), (470, 209)]
+    frame6_feature_points = [(229, 265), (234, 299), (411, 74), (348, 298), (387, 364), (459, 209)]
+
+    frames_points = [ref_feature_points, frame1_feature_points, frame2_feature_points, frame3_feature_points,
+                     frame4_feature_points, frame5_feature_points, frame6_feature_points]
+
     return frames_points
 
 
@@ -160,14 +161,47 @@ def get_all_video_frames(video_path, rotate=False):
     return frames
 
 
-def make_normal_video(output_video_path, frames):
+def get_frames_uniform(video_path, number_of_frames, rotate=False):
+    video_reader = cv.VideoCapture(video_path)
+    length = video_reader.get(cv.CAP_PROP_FRAME_COUNT)
+    interval = math.floor(length/number_of_frames)
+    frames = list()
+    for i in range(number_of_frames):
+        video_reader.set(cv.CAP_PROP_POS_FRAMES, i*interval)
+        _, frame = video_reader.read()
+        if rotate:
+            frame = np.transpose(frame, (1, 0, 2))
+        frames.append(np.uint8(frame))
+    return frames
+
+
+def q1_make_video(output_video_path, frames, frame_duration, fps=30):
+    number_of_frames = fps*frame_duration
+
     rows = frames[0].shape[0]
     cols = frames[0].shape[1]
     video_format = cv.VideoWriter_fourcc(*"XVID")
-    video_writer = cv.VideoWriter(output_video_path, video_format, 30, (cols, rows))
+    video_writer = cv.VideoWriter(output_video_path, video_format, fps, (cols, rows)) # In the constructor (column, row). However in video_writer.write its (row, column).
+    for frame in frames:
+        for i in range(number_of_frames):
+            video_writer.write(np.uint8(frame))
+    video_writer.release()
+
+
+def make_normal_video(output_video_path, frames):
+    # input: output_video_path is the path where the resulting video is created
+    # input: frames is a list containing frames
+    # input: frame_duration is the duration in seconds each frame will be visible
+    # input: fps is the desired fps. maybe if we use lower fps it'll be better for long videos
+    # output: void
+    height = frames[0].shape[0]
+    width = frames[0].shape[1]
+    video_format = cv.VideoWriter_fourcc(*"XVID")
+    video_writer = cv.VideoWriter(output_video_path, video_format, 30, (width, height))
     for frame in frames:
         video_writer.write(np.uint8(frame))
     video_writer.release()
+
 
 def make_video_from_image_files(image_files_dir, rotate = False):
     images_path = get_pwd() + '/our_data/' + image_files_dir + '/'

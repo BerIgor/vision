@@ -44,6 +44,8 @@ def perform_subspace_video_stabilization(frame_list, output_video_path):
         os.remove(output_video_path)
     utils.make_normal_video(output_video_path, frame_list_stabilized)
 
+    return frame_list_stabilized
+
 
 def extract_klt_features(frame_list):
     # Based on: https://docs.opencv.org/3.3.1/d7/d8b/tutorial_py_lucas_kanade.html
