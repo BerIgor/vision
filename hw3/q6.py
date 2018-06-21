@@ -30,6 +30,7 @@ def match_images(ref_image, ref_points, target_image, target_points, search_wind
             template = get_sub_image(ref_image, ref_point, match_window)
             best_point = get_best_matching_point(template, target_image, points_in_window, match_window)
         matched_points.append(best_point)
+
     return filtered_ref_points, matched_points
 
 
@@ -57,6 +58,7 @@ def calc_ssd_list(template, image, points, match_window):
     :return: returns a list with the minimal ssd values in each sub-image
     """
     ssd_list = list()
+
     for point in points:
 
         image_ssd_sub_win = get_sub_image(image, point, match_window)
@@ -68,7 +70,7 @@ def calc_ssd_list(template, image, points, match_window):
         template = template[0:template_new_rowmax, 0:template_new_colmax]
 
         ssd_score = cv.matchTemplate(image_ssd_sub_win, template, cv.TM_SQDIFF)
-        ssd_list.append(np.max(ssd_score)) # As it's calculated per window, min and max are the same
+        ssd_list.append(np.min(ssd_score))  # As it's calculated per window, min and max are the same
 
     return ssd_list
 
@@ -171,25 +173,6 @@ def filter_points_not_in_mask(ref_points, mask, seq_points=None):
     return new_ref_points, new_seq_points
 
 
-def answer_question2(frame_list):
-    mask = cv.imread(utils.get_pwd() + '/our_data/masked_frames/0.jpg')
-    mask = np.transpose(mask, (1, 0, 2))
-
-    # ref_feature_points, ref_features_img = q2.harris_and_nms(frame_list[0], 20)
-    # ref_feature_points, _ = filter_points_not_in_mask(ref_feature_points, mask)
-
-    for i in range(1, len(frame_list)):
-        filtered_ref_points, matched_points = perform_q6(frame_list[0], frame_list[i], mask,
-                                                         ssd_win=20,
-                                                         search_win=50,
-                                                         nms_window=50)
-
-        f = frame_list[0].copy()
-        ref_frame_marked = q3.mark_points(f, filtered_ref_points[0:9])
-        seq_frame_marked = q3.mark_points(frame_list[i], matched_points[0:9])
-        utils.compare_two_images(ref_frame_marked, seq_frame_marked, "No mask")
-
-
 def answer_question(frame_list):
     mask = cv.imread(utils.get_pwd() + '/our_data/masked_frames/0.jpg')
     mask = np.transpose(mask, (1, 0, 2))
@@ -204,9 +187,9 @@ def answer_question(frame_list):
     seq_frame_points_lists = list()
     for i in range(1, len(frame_list)):
         ref_points, matched_points = perform_q6(frame_list[0], frame_list[i], mask,
-                                                ssd_win=30,
-                                                search_win=50,
-                                                nms_window=8)
+                                                ssd_win=20,
+                                                search_win=35,
+                                                nms_window=35)
 
         if has_orig is False:
             orig_ref_points = ref_points
@@ -232,13 +215,19 @@ def answer_question(frame_list):
     for point_list in final_seq_points_lists:
         f = frame_list[i].copy()
 
-        print(len(point_list))
         marked_frame = q3.mark_points(f, point_list[0:10])
         marked_frame_list.append(marked_frame)
         i += 1
 
     marked_frame_list = utils.rotate_frames(marked_frame_list)
-    final = utils.hstack_frames(marked_frame_list, reverse=True)
+
+    # Flip horizontal
+    new_frame_list = list()
+    for image in marked_frame_list:
+        image = np.flip(image, 1)
+        new_frame_list.append(image)
+
+    final = utils.hstack_frames(new_frame_list, reverse=False)
 
     cv.imwrite(utils.get_pwd() + "/q6" + ".jpg", final)
 

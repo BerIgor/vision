@@ -2,7 +2,8 @@ import numpy as np
 import cv2
 import math
 import matplotlib.pyplot as plt
-from hw3 import utils, q7, q5, q3, program
+from hw3 import utils, q7, q5, q3  # , program
+
 
 def perform_subspace_video_stabilization(frame_list):
     # Stages are according to the moodle note - https://moodle.technion.ac.il/mod/forum/discuss.php?d=423166
@@ -66,7 +67,7 @@ def extract_klt_features(frame_list):
     M[0:p0_xy_1d_vec.size, 0] = p0_xy_1d_vec
     # Create a mask image for drawing purposes
     # mask = np.zeros_like(old_frame)
-    for i in range(len(frame_list)-1):
+    for i in range(len(frame_list)):
         frame_gray = cv2.cvtColor(frame_list[i+1], cv2.COLOR_BGR2GRAY)
         # calculate optical flow
         p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
@@ -272,7 +273,7 @@ def stabilize_frames(frame_list, frames_transformations_list ):
     # Transform frames
     t = time.time()
     for i in range(num_of_frames):
-        if i % 10 != 0: continue
+        # if i % 10 != 0: continue
         a, b = frames_transformations_list[i]
         print("Transformation matrices for frame " + str(i))
         print(a)

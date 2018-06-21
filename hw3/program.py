@@ -2,9 +2,7 @@ import sys, os
 import cv2 as cv
 import math
 import numpy as np
-import random
 from hw3 import *
-from hw3 import igor_playground
 
 
 # Globals
@@ -22,6 +20,7 @@ def get_frames_uniform(video_path, number_of_frames, rotate=False):
             frame = np.transpose(frame, (1, 0, 2))
         frames.append(np.uint8(frame))
     return frames
+
 # input: output_video_path is the path where the resulting video is created
 # input: frames is a list containing frames
 # input: frame_duration is the duration in seconds each frame will be visible
@@ -41,10 +40,10 @@ def q1_make_video(output_video_path, frames, frame_duration, fps=30):
 
 
 def make_normal_video(output_video_path, frames):
-    rows = frames[0].shape[0]
-    cols = frames[0].shape[1]
+    height = frames[0].shape[0]
+    width = frames[0].shape[1]
     video_format = cv.VideoWriter_fourcc(*"XVID")
-    video_writer = cv.VideoWriter(output_video_path, video_format, 30, (cols, rows))
+    video_writer = cv.VideoWriter(output_video_path, video_format, 30, (width, height))
     for frame in frames:
         video_writer.write(np.uint8(frame))
     video_writer.release()
@@ -71,231 +70,73 @@ if __name__ == "__main__":
 
     # Q5
     q5.perform(frame_list, q4_transformations)
-    # TODO: Remove the thing below and do it in q5.perform
     q5_stabilized_frames = q5.stabilize_frames(frame_list, q4_transformations)
-    make_normal_video(pwd + '/our_data/q5_ariel_stable.avi', q5_stabilized_frames)
+    q1_make_video(pwd + '/q5_ariel_stable.avi', q5_stabilized_frames, 1)
 
     # Q6
     q6.answer_question(frame_list)
 
-    exit()
-
-    mask = cv.imread(pwd + '/our_data/masked_frames/0.jpg')
-    mask = np.transpose(mask, (1, 0, 2))
-    print(len(frame_list))
-    for frame in frame_list:
-        print("frame")
-        ref_feature_points, matched_points = q6.perform_q6(frame_list[0], frame, mask)
-
-    # TODO: Complete
+    # Q7
 
     # Q8
-    q8_all_frame_list = utils.get_all_video_frames(source_video_path)
+    stab_short = q8.perform(frame_list, nms_window=35, search_window=5, ssd_window=20)
+    stab_short = utils.rotate_frames(stab_short)
+    new_stab_list = list()
+    for image in stab_short:
+        image = np.flip(image, 1)
+        new_stab_list.append(image)
+    q1_make_video(utils.get_pwd() + '/q8_short_stable.avi', new_stab_list, 1)
 
-    q8_trans_list = list()
-    q8_stab_list = list()
+    stab_short = utils.hstack_frames(new_stab_list, reverse=False)
+    cv.imwrite(utils.get_pwd() + '/q8_short_stable.jpg', stab_short)
+
+    # make full video
+    full_frame_list = utils.get_all_video_frames(source_video_path, rotate=False)
+    stab_long = q8.perform(full_frame_list, nms_window=35, search_window=5, ssd_window=20)
+    stab_long = utils.rotate_frames(stab_long)
     i = 0
-    for frame in q8_all_frame_list:
+    frame_list_flipped = list()
+    for frame in stab_long:
+        frame = np.flip(frame, 1)
+        frame_list_flipped.append(frame)
+        utils.video_save_frame(frame, utils.get_pwd(), 'stab_8', i)
+        i += 1
+    make_normal_video(utils.get_pwd() + '/q8_long_stable.avi', frame_list_flipped)
+
+    # try and make a better video using the checker
+    print("making good video?")
+    full_frame_list = utils.get_all_video_frames(source_video_path, rotate=False)
+
+    mask = cv.imread(utils.get_pwd() + '/our_data/masked_frames/0.jpg')
+    mask = np.transpose(mask, (1, 0, 2))
+
+    q8_second_attempt = list()
+    i = 0
+    for frame in full_frame_list:
         tries = 5
         good_frame = False
-        ref_feature_points, matched_points = q6.perform_q6(q8_all_frame_list[0], frame, mask)
+
+        ref_feature_points, matched_points = q6.perform_q6(full_frame_list[0], frame, mask, search_win=5, ssd_win=20, nms_window=35)
+        if len(ref_feature_points) < 10:
+            ref_feature_points, matched_points = q6.perform_q6(full_frame_list[0], frame, mask, search_win=10,
+                                                               ssd_win=20, nms_window=35)
         while good_frame is False and tries > 0:
-            print(tries)
-            # ref_feature_points, matched_points = q6.perform_q6(q8_all_frame_list[0], frame, mask)
+            print("tries = " + str(tries))
             q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
-            # q8_trans_list.append(q8_transformation)
-            # a, b = q8_trans_list[i]
+
             a, b = q8_transformation
             stab_image = q5.stabilize_image_cv(frame, a, b)
-            # good_frame = utils.is_frame_good_pixel_count(stab_image)
-            good_frame = utils.is_frame_good_corner_check(stab_image, window_size=30, p=0.95)
-            tries -= 1
 
+            good_frame = utils.is_frame_good_corner_check(stab_image, window_size=60, p=1.0)
+            tries -= 1
         if tries == 0:
             continue
         else:
-            q8_stab_list.append(stab_image)
-            utils.video_save_frame(stab_image, pwd, 'stab_8', i)
+            q8_second_attempt.append(stab_image)
+            utils.video_save_frame(stab_image, pwd, 'stab_8_2', i)
             i += 1
 
-    make_normal_video(pwd + '/our_data/q8_stab.avi', q8_stab_list)
-    """
-    q8_stab_list = list()
-    for i in range(len(q8_all_frame_list)):
-        a, b = q8_trans_list[i]
-        stab_image = q5.stabilize_image_cv(q8_all_frame_list[i], a, b)
-        utils.video_save_frame(stab_image, pwd, "stab_8", i)
-        q8_stab_list.append(stab_image)
-    """
-    make_normal_video(pwd + '/our_data/q8_ariel_stable.avi', q8_stab_list)
-    exit()
+    make_normal_video(utils.get_pwd() + '/q8_long_stable_second.avi', frame_list_flipped)
 
-    frame_list = get_all_video_frames(source_video_path, rotate=True)
-    # masked_frame_list = get_all_video_frames(str(pwd) + '/our_data/ariel_segmented_full_length.avi')
-    print(np.shape(frame_list[0]))
-    igor_playground.stabilize_using_mask(frame_list, pwd)
-    exit()
-    """
-    points_to_mark = utils.get_frames_points()
-    for i in range(len(frame_list)):
-        frame = frame_list[i]
-        points = points_to_mark[i]
-        marked_image = q3.mark_points(frame, points)
-        utils.cvshow("FRAME", marked_image)
+    # END
 
-
-    xy_point_lists = utils.get_frames_points()
-    rc_point_lists = utils.invert_point_lists(xy_point_lists)
-
-    transformation_list = q4.get_seq_transformation(rc_point_lists)
-    stabilized_images = q5.perform(frame_list, transformation_list)
-    stabilized_video_path = pwd + '/our_data/q5_ariel_stable.avi'
-    q1_make_video(stabilized_video_path, stabilized_images, 2)
-    exit()
-
-
-    frame_list_q8 = get_all_video_frames(source_video_path)
-
-    frames_point_pairs = list()
-    transformations = list()
-    
-    for frame in frame_list_q8:
-
-        ref_points, seq_points = q6.perform_q6(frame_list_q8[0], frame)
-        # ref_points = utils.invert_points(ref_points)
-        # seq_points = utils.invert_points(seq_points)
-        transformations.append(q7.calc_transform_ransac(ref_points, seq_points))
-
-    stabilized_frames_q8 = q8.perform(frame_list_q8)
-
-    i = 0
-    for frame in frame_list:
-        utils.video_save_frame(frame, "orig", i)
-        i += 1
-
-    i = 0
-    for frame in stabilized_frames_q8:
-        utils.video_save_frame(frame, pwd, "stab", i)
-        i += 1
-
-    stabilized_video_path = pwd + '/our_data/q8_milk_stable.avi'
-    make_normal_video(stabilized_video_path, stabilized_frames_q8)
-
-    exit()
-
-    # Find edges using Harris
-    # image_harris_nms = q2.harris_and_nms(image)
-    # plist = [(20,20), (90,90), (300,300), (300,400), (50, 270), (270,400), (350, 350)]
-    # q3.mark_points(image, plist)
-    # utils.cvshow("marked", q3.mark_points(image, plist))
-
-    # Test q3 - Choose manually matching feature points
-
-
-    q3.choose_match_points_for_all_frames(frame_list)
-
-    # Get manually matched points
-    frames_feature_points_list = utils.get_frames_points()
-
-    # Test manual points:
-    ref = frame_list[0]
-    for i in range(len(frame_list[1:])):
-        frame = frame_list[i+1]
-        frame_feature_points = frames_feature_points_list[i]
-        final_ref_with_matkings = q3.mark_points(ref, ref_feature_points)
-        final_frame_with_markings = q3.mark_points(frame, frame_feature_points)
-        finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
-        utils.cvshow("final results - ref vs frame " + str(i+1), finals_merged)
-
-
-    # Test q4 - finding affine transformation
-
-    points = list()
-    # points.append([(1, 1), (2, 2), (3, 3)])
-    # points.append([(2, 2), (3, 3), (4, 4)])
-    points.append(ref_feature_points)
-    points.append(frame1_feature_points)
-
-    res_list = q4.get_seq_transformation(points)
-    a, b = res_list[0]
-
-    for ref_point in ref_feature_points[3:]:
-        print("Reference Point")
-        print(ref_point)
-        points_transformed = q4.test_transformation2(np.vstack(ref_point), a, b)
-        print("Transformed points:")
-        print((tuple(np.squeeze(points_transformed))))
-
-
-    # Test q5 - Stabillization
-
-    ret, res = cv.threshold(res, 0.01 * res.max(), 255, cv.THRESH_BINARY)
-
-    result_video_path = pwd + '/our_data/result.avi'
-    q1_make_video(result_video_path, frame_list, 3)
-
-    """
-    # Test q6
-
-    # ref = cv.imread(str(pwd) + '/our_data/orig/0.jpg')
-    # milk = cv.imread(str(pwd) + '/our_data/stab/14.jpg')
-    ref = frame_list[0]
-    i = 1
-    for frame in frame_list[1:]:
-        milk = frame_list[14]
-
-        print(np.shape(ref))
-        print(np.shape(milk))
-        from random import shuffle
-
-        ref_feature_points, matched_points = q6.perform_q6(ref, milk)
-
-        ref_mark = q3.mark_points(ref, ref_feature_points)
-        milk_mark = q3.mark_points(milk, matched_points)
-
-        print(ref_mark.shape)
-        print(milk_mark.shape)
-        # utils.cvshow("REF", ref_mark)
-        # utils.cvshow("14", milk_mark)
-
-        a, b = q7.calc_transform_ransac(ref_feature_points, matched_points)
-        stab_milk = q5.stabilize_image_cv(milk, a, b)
-        # utils.cvshow("STAB", stab_milk)
-        path = str(pwd) + '/our_data/stab_new/' + str(i) + '.jpg'
-        print(np.shape(ref_mark))
-        print(np.shape(stab_milk))
-        merged = cv.hconcat((ref_mark, stab_milk))
-        cv.imwrite(path, merged)
-
-        i += 1
-    """
-    # for frame in frame_list[14]:
-    frame = milk
-
-    match_frame = frame.copy()
-    ref_feature_points, matched_points = q6.perform_q6(ref, match_frame)
-
-    print("ref points num: " + str(len(ref_feature_points)) + "\nframe points num: " + str(len(matched_points)))
-    indices = list(range(len(ref_feature_points)))
-    shuffle(indices)
-    point_indices = indices[0:test_points_num]
-    print(type(point_indices[0]))
-    ref_feature_points_test = [ref_feature_points[ind] for ind in point_indices]
-    match_frame_points_test = [matched_points[ind] for ind in point_indices]
-    print("ref points test num: " + str(len(ref_feature_points_test)) + "\nframe points test num: " + str(len(match_frame_points_test)))
-    # final_ref_with_matkings = np.transpose(q3.mark_points(ref, ref_feature_points_test), (1, 0, 2))
-    # final_frame_with_markings = np.transpose(q3.mark_points(match_frame, match_frame_points_test), (1, 0, 2))
-    # finals_merged = cv.hconcat((final_ref_with_matkings,final_frame_with_markings))
-    for ip in range(len(ref_feature_points_test)):
-        print("Ref p: " + str(ref_feature_points_test[ip]) + " Match p: " + str(match_frame_points_test[ip]))
-    final_ref_with_markings = q3.mark_points(ref, ref_feature_points_test)
-    final_frame_with_markings = q3.mark_points(match_frame, match_frame_points_test)
-    utils.compare_two_images(final_ref_with_markings, final_frame_with_markings, "harris and nms - ref vs frame")
-    ref = frame_list[0].copy() # Reset ref image
-
-
-    # Test q9
-    all_video_frames = get_all_video_frames(source_video_path)
-    q9.perform_subspace_video_stabilization(all_video_frames)
-    """
-    # Igor testing for q9 start here
