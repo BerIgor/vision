@@ -103,41 +103,6 @@ if __name__ == "__main__":
         i += 1
     make_normal_video(utils.get_pwd() + '/q8_long_stable.avi', frame_list_flipped)
 
-    # try and make a better video using the checker
-    print("making good video?")
-    full_frame_list = utils.get_all_video_frames(source_video_path, rotate=False)
-
-    mask = cv.imread(utils.get_pwd() + '/our_data/masked_frames/0.jpg')
-    mask = np.transpose(mask, (1, 0, 2))
-
-    q8_second_attempt = list()
-    i = 0
-    for frame in full_frame_list:
-        tries = 5
-        good_frame = False
-
-        ref_feature_points, matched_points = q6.perform_q6(full_frame_list[0], frame, mask, search_win=5, ssd_win=20, nms_window=35)
-        if len(ref_feature_points) < 10:
-            ref_feature_points, matched_points = q6.perform_q6(full_frame_list[0], frame, mask, search_win=10,
-                                                               ssd_win=20, nms_window=35)
-        while good_frame is False and tries > 0:
-            print("tries = " + str(tries))
-            q8_transformation = q7.calc_transform_ransac(ref_feature_points, matched_points)
-
-            a, b = q8_transformation
-            stab_image = q5.stabilize_image_cv(frame, a, b)
-
-            good_frame = utils.is_frame_good_corner_check(stab_image, window_size=60, p=1.0)
-            tries -= 1
-        if tries == 0:
-            continue
-        else:
-            q8_second_attempt.append(stab_image)
-            utils.video_save_frame(stab_image, pwd, 'stab_8_2', i)
-            i += 1
-
-    make_normal_video(utils.get_pwd() + '/q8_long_stable_second.avi', frame_list_flipped)
-
     # Q9
     all_video_frames = utils.get_all_video_frames(source_video_path)
     output_video_path = pwd + '/our_data/ariel_stabilized_q9.avi'
