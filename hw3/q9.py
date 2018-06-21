@@ -1,26 +1,28 @@
+import os
 import numpy as np
 import cv2
 import math
 import matplotlib.pyplot as plt
-from hw3 import utils, q7, q5, q3  # , program
+from hw3 import utils, q7, q5, q3
 
 
-def perform_subspace_video_stabilization(frame_list):
+def perform_subspace_video_stabilization(frame_list, output_video_path):
     # Stages are according to the moodle note - https://moodle.technion.ac.il/mod/forum/discuss.php?d=423166
 
     # Stage 1 - Extract KLT features and build matrix M:
     M = extract_klt_features(frame_list)
     print("Number of zeros in M: " + str(M.size-np.count_nonzero(M)))
+    # Plot trajectory matrix M
     # Create custom binary colormap
-    cmap = plt.cm.Greys
-    cmaplist = [(0, 0, 1, 1) for i in range(cmap.N)]
-    cmaplist.insert(0, ( 1, 1, 1, 1))
-    cmap = cmap.from_list('Custom cmap', cmaplist, len(cmaplist))
-    # Plot M
-    plt.matshow(M != 0, cmap=cmap)
-    plt.show()
+    # cmap = plt.cm.Greys
+    # cmaplist = [(0, 0, 1, 1) for i in range(cmap.N)]
+    # cmaplist.insert(0, ( 1, 1, 1, 1))
+    # cmap = cmap.from_list('Custom cmap', cmaplist, len(cmaplist))
+    # # Plot M
+    # plt.matshow(M != 0, cmap=cmap)
+    # plt.show()
 
-    # Stage 2 - Break M to windows and truncate zeros from window
+    # Stage 2 - Break M to windows
     frames_per_window = 50
     window_delta = 5
     M_windows_list = break_m_into_windows(M, frames_per_window, window_delta)
@@ -28,22 +30,24 @@ def perform_subspace_video_stabilization(frame_list):
    # Stage 3 - Create truncated window list
     M_windows_list_truncated = truncate_zeros_from_window_list(M_windows_list)
 
-    # Stage 4 - Smoothing using SVD and filtering
+    # Stage 4 - Smoothing and filtering using SVD and a guassian 1D temporal filter
     M_windows_list_truncated_smooth = smooth_and_filter(M_windows_list_truncated)
 
     # Stage 5 - Get transformation for each frame using RANSAC
     frames_list_transformations = get_frames_transformations(M_windows_list_truncated, M_windows_list_truncated_smooth, window_delta)
 
-    # Stage 6 - Stabilize all frames using stage 5 transformations
+    # Stage 6 - Stabilize all frames using transformations found in stage 5
     frame_list_stabilized = stabilize_frames(frame_list, frames_list_transformations)
 
     # Stage 7 - Rebuild the entire stabillized video
-    output_video_path = pwd + '/our_data/ariel_stabilized_q9.avi'
-    program.make_normal_video(output_video_path, frame_list_stabilized)
+    if os.path.isfile(output_video_path):
+        os.remove(output_video_path)
+    utils.make_normal_video(output_video_path, frame_list_stabilized)
 
 
 def extract_klt_features(frame_list):
     # Based on: https://docs.opencv.org/3.3.1/d7/d8b/tutorial_py_lucas_kanade.html
+    # Some parts of the template code was preserved in comments to allow results visualization later on, if needed
     # params for ShiTomasi corner detection
     feature_params = dict(maxCorners=frame_list[0].size,
                           qualityLevel=0.01,
@@ -53,8 +57,8 @@ def extract_klt_features(frame_list):
     lk_params = dict(winSize=(15, 15),
                      maxLevel=2,
                      criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-    # Create some random colors
-    color = np.random.randint(0, 255, (100, 3))
+    # Create some random colors (legacy, from template code)
+    # color = np.random.randint(0, 255, (100, 3))
     # Take first frame and find corners in it
     old_frame = frame_list[0]
     old_gray = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
@@ -62,25 +66,26 @@ def extract_klt_features(frame_list):
     print("Num of features found: " + str(p0.shape[0]))
     M = np.zeros((old_frame.size*2,len(frame_list))) # Initialize M matrix in a way that it can fit new detected features in future frames
     p0_xy_1d_vec = p0[:, 0, :].flatten()
-    p0_tuples_list = xy_vec_to_tuples_list(p0_xy_1d_vec)
-    utils.cvshow("goodFeaturesToTrack", q3.mark_points(old_frame.copy(), p0_tuples_list))
+    # Plot features on frame
+    # p0_tuples_list = xy_vec_to_tuples_list(p0_xy_1d_vec)
+    # utils.cvshow("goodFeaturesToTrack", q3.mark_points(old_frame.copy(), p0_tuples_list))
     M[0:p0_xy_1d_vec.size, 0] = p0_xy_1d_vec
     # Create a mask image for drawing purposes
     # mask = np.zeros_like(old_frame)
-    for i in range(len(frame_list)):
+    for i in range(len(frame_list[1:])):
         frame_gray = cv2.cvtColor(frame_list[i+1], cv2.COLOR_BGR2GRAY)
         # calculate optical flow
         p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
         if st.size != np.count_nonzero(st):
             # Zero out features that couldn't be tracked
             p1[np.where(st == 0)[0], 0, :] = -1
-            print("Lost track of " + str(st.size - np.count_nonzero(st)) + " features")
+            # print("Lost track of " + str(st.size - np.count_nonzero(st)) + " features")
 
         # Extract new features
         frame_new_features = cv2.goodFeaturesToTrack(frame_gray, mask=None, **feature_params)
         print("num of new points: " + str(frame_new_features.shape[0]))
 
-        # Remove new features that are already in p1
+        # Filter out new found features that are already in p1
         win_size = 20
         frame_new_features_xy_2d_prev = frame_new_features[:, 0, :]
         for p1_point in p1[:, 0, :]:
@@ -91,8 +96,8 @@ def extract_klt_features(frame_list):
         frame_new_features_xy_1d_vec = np.array(frame_new_features_filtered).flatten()
 
         # Select good points (legacy, from template code)
-        good_new = p1[st == 1]
-        good_old = p0[st == 1]
+        # good_new = p1[st == 1]
+        # good_old = p0[st == 1]
 
         # Concatenate p1 and new features and assign to M
         p1_xy_1d_vec = p1[:, 0, :].flatten()
@@ -113,7 +118,7 @@ def extract_klt_features(frame_list):
 
         # Update the previous frame and previous points
         old_gray = frame_gray.copy()
-        p0 = new_points_1d_xy_vec.reshape((int(new_points_1d_xy_vec.size/2), 2)).reshape(-1, 1, 2) # First 1d -> 2d reshape, then 2d -> 3d standard form reshape
+        p0 = new_points_1d_xy_vec.reshape((int(new_points_1d_xy_vec.size/2), 2)).reshape(-1, 1, 2) # First 1d -> 2d reshape, then 2d -> 3d standard calcOpticalFlowPyrLK I/O form reshape
 
     cv2.destroyAllWindows()
     # Remove redundant zero rows from m
@@ -132,7 +137,7 @@ def break_m_into_windows(M, frames_per_window, window_delta):
     m_windows_list = list()
     num_of_frames = M.shape[1]
     windows_num = math.floor((num_of_frames-frames_per_window) / window_delta)
-    print(windows_num)
+    print("Number of windows in M: " + str(windows_num) + " for window size of K=" + str(frames_per_window) + " frames")
     for i in range(windows_num):
         curr_win_start = window_delta * i
         curr_win_end = curr_win_start + frames_per_window
@@ -155,30 +160,14 @@ def truncate_zeros_from_window_list(window_list):
             # No zeros in window:
             window_list_truncated.append(window)
         else:
-            # Mine
-            # truncated_win = np.zeros((2, window.shape[1]))
-            # for i in range(0, window.shape[0], 2):
-            #     xy_rows = window[i:i + 2, :]
-            #     if np.count_nonzero(xy_rows) != xy_rows.size:
-            #         # Zeros exist in window -> truncate row from window
-            #         continue
-            #     else:
-            #         if np.count_nonzero(truncated_win) == 0:
-            #             # No rows has been entered yet
-            #             truncated_win = xy_rows
-            #         else:
-            #             truncated_win = np.vstack((truncated_win, xy_rows))
-
-            # Aberdam
             truncated_win = window[~np.all(window == 0, axis=1)]
-
             window_list_truncated.append(truncated_win)
 
     return window_list_truncated
 
 
 def smooth_and_filter(truncated_window_list):
-    from sklearn.utils.extmath import randomized_svd as svd
+    from numpy.linalg import svd
     from scipy.signal import savgol_filter as filter
     from scipy.ndimage.filters import gaussian_filter1d
 
@@ -187,30 +176,20 @@ def smooth_and_filter(truncated_window_list):
     for win in truncated_window_list:
         r = 9 # Irani [2002]
 
-        # Mine
-        # u, s, vh = svd(win, n_components=r)
-        # c = np.matmul(u, np.diag(s))
-        # e = vh
-        #
-        # # Filtering
-        # e_stab = e # np.zeros_like(e)
-        # #e_stab[r-1, :] = filter(e[r-1, :], window_length=21, polyorder=5) #TODO - find problem/optimal values of this
-        # e_stab[r-1, :] = gaussian_filter1d(e[r-1, :], sigma=((win.shape[1]/2)/math.sqrt(2)))
-        # smoothed_win = np.matmul(c, e_stab)
-
-        # Aberdam
-        u, s, v = np.linalg.svd(win)
-        # Create C & E
+        u, s, v = svd(win)
+        # Create coefficient matrix C and eigen-trajectories matrix E
         s_diag = np.diag(np.sqrt(s))
         s_diag_r = s_diag[:r, :r]
         c = np.dot(u[:, :r], s_diag_r)
         e = np.dot(s_diag_r, v[:r, :])
-        #     e_stab = filter(e,window_length=5,polyorder=2,axis=1)
-        e_stab = gaussian_filter1d(e, sigma=25/(2**0.5), axis=1)
-        smoothed_win = np.dot(c, e_stab)
+        # e_stab = filter(e,window_length=5,polyorder=2,axis=1) # Savitzky-Golay filter can also be applied, instead of the gaussian
+        e_stabilized = gaussian_filter1d(e, sigma=(win.shape[1]/2)/(2**0.5), axis=1) # Sigma is as suggested in the paper
+        smoothed_win = np.dot(c, e_stabilized)
 
-        print("Diff on frame 1 after smoothing:")
-        print(np.linalg.norm(win[:, 0]-smoothed_win[:, 0]))
+        # Show norm difference before and after stabilization on frame 0
+        # print("Diff on frame 1 after smoothing:")
+        # print(np.linalg.norm(win[:, 0]-smoothed_win[:, 0]))
+
         truncated_smoothed_window_list.append(smoothed_win)
 
     return truncated_smoothed_window_list
@@ -231,7 +210,7 @@ def ransac_on_windows(win, smooth_win):
         # Fit arrays to ransac input:
         win_points_ransac_fitted = [(win_point_list[i], win_point_list[i+1]) for i in range(0,num_of_points,2)]
         smooth_win_points_ransac_fitted = [(smooth_win_point_list[i], smooth_win_point_list[i+1]) for i in range(0, num_of_points, 2)]
-        # Apply ransac
+        # Get transformation using RANSAC from q7
         A, b = q7.calc_transform_ransac(smooth_win_points_ransac_fitted, win_points_ransac_fitted)
         transformations_list.append((A,b))
 
@@ -263,47 +242,41 @@ def get_frames_transformations(M_windows_list_truncated, M_windows_list_truncate
     return frames_transformations_list
 
 
-def stabilize_frames(frame_list, frames_transformations_list ):
-    import time
-
+def stabilize_frames(frame_list, frames_transformations_list, save_frames=False):
     # Initialize
     stabilized_frames = list()
     num_of_frames = len(frame_list)
 
-    # Transform frames
-    t = time.time()
-    for i in range(num_of_frames):
-        # if i % 10 != 0: continue
-        a, b = frames_transformations_list[i]
-        print("Transformation matrices for frame " + str(i))
-        print(a)
-        print(b)
-        frame = frame_list[i]
-        utils.video_save_frame(frame, pwd, 'q9_frames', i)
-        stabilized_frame = q5.stabilize_image(frame, a, b)
-        utils.video_save_frame(stabilized_frame, pwd, 'q9_frames_stab', i)
-        stabilized_frames.append(stabilized_frame)
-        print("Stabilized frame " + str(i))
+    # Clean output directories
+    pwd = utils.get_pwd()
+    images_dir_path = pwd + '/our_data/q9_frames/'
+    stab_images_dir_path = pwd + '/our_data/q9_frames_stab/'
+    if save_frames:
+        clean_output_directories(images_dir_path, stab_images_dir_path)
 
-    elapsed = time.time() - t
-    print(elapsed)
+    # Transform frames
+    for i in range(num_of_frames):
+        a, b = frames_transformations_list[i]
+        # print("Transformation matrices for frame " + str(i))
+        # print(a)
+        # print(b)
+        frame = frame_list[i]
+        stabilized_frame = q5.stabilize_image(frame, a, b)
+        stabilized_frames.append(stabilized_frame)
+        # Save frames to output folders
+        if save_frames:
+            utils.video_save_frame(frame, pwd, 'q9_frames', i)
+            utils.video_save_frame(stabilized_frame, pwd, 'q9_frames_stab', i)
+        print("Stabilized frame " + str(i))
 
     return stabilized_frames
 
+# Utility functions for q9
 def xy_vec_to_tuples_list(xy_vec):
     return [(xy_vec[i], xy_vec[i + 1]) for i in range(0, xy_vec.size, 2)]
 
-
-if __name__ == "__main__":
-    # Test q9
-    import os
+def clean_output_directories(images_dir_path, stab_images_dir_path):
     import shutil
-
-    # Paths
-    pwd = os.getcwd().replace('\\', '//')
-    source_video_path = pwd + '/our_data/ariel.mp4'
-    images_dir_path = pwd + '/our_data/q9_frames/'
-    stab_images_dir_path = pwd + '/our_data/q9_frames_stab/'
 
     # Delete and re-create current output folders
     if os.path.isdir(images_dir_path):
@@ -322,9 +295,5 @@ if __name__ == "__main__":
     finally:
         os.umask(original_umask)
 
-    all_video_frames = utils.get_all_video_frames(source_video_path)
-    perform_subspace_video_stabilization(all_video_frames)
-    # utils.make_video_from_image_files('q9_frames')
-    # utils.make_video_from_image_files('q9_frames_stab')
 
 

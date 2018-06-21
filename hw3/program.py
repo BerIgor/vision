@@ -138,5 +138,10 @@ if __name__ == "__main__":
 
     make_normal_video(utils.get_pwd() + '/q8_long_stable_second.avi', frame_list_flipped)
 
+    # Q9
+    all_video_frames = utils.get_all_video_frames(source_video_path)
+    output_video_path = pwd + '/our_data/ariel_stabilized_q9.avi'
+    q9.perform_subspace_video_stabilization(all_video_frames, output_video_path)
+
     # END
 
