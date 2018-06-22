@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import math
+import os
 
 
 def get_pwd():
@@ -32,7 +33,7 @@ def get_all_frames(video_path):
 
 
 def cvshow(title, im):
-    # cv.namedWindow(title, cv.WINDOW_NORMAL)
-    cv.namedWindow(title)
-    cv.imshow(title, im)
-    cv.waitKey()
+    # cv2.namedWindow(title, cv2.WINDOW_NORMAL)
+    cv2.namedWindow(title)
+    cv2.imshow(title, im)
+    cv2.waitKey()
