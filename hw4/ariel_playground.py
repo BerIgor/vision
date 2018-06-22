@@ -3,26 +3,36 @@ import cv2
 from hw4 import utils
 
 if __name__ == "__main__":
-    pwd = utils.get_pwd()
-    source_video_path = pwd + '/our_data/ariel.mp4'
-    frame_list = utils.get_all_frames(source_video_path)
 
-    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-    eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
+    # Get user supplied values
 
-    img = frame_list[0]
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    frame_list = utils.get_all_frames(video_path)
+    imagePath = sys.argv[1]
+    cascPath = "haarcascade_frontalface_default.xml"
 
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    # Create the haar cascade
+    faceCascade = cv2.CascadeClassifier(cascPath)
+
+    # Read the image
+    image = cv2.imread(imagePath)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Detect faces in the image
+    faces = faceCascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(30, 30),
+        flags=cv2.cv.CV_HAAR_SCALE_IMAGE
+    )
+
+    print("Found {0} faces!".format(len(faces)))
+
+    # Draw a rectangle around the faces
     for (x, y, w, h) in faces:
-        img = cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
-        roi_gray = gray[y:y + h, x:x + w]
-        roi_color = img[y:y + h, x:x + w]
-        eyes = eye_cascade.detectMultiScale(roi_gray)
-        for (ex, ey, ew, eh) in eyes:
-            cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    cv2.imshow('img', img)
+    cv2.imshow("Faces found", image)
     cv2.waitKey(0)
-    cv2.destroyAllWindows()
+
 
