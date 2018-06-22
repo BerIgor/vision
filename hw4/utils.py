@@ -32,6 +32,21 @@ def get_all_frames(video_path):
     return frames
 
 
+def make_normal_video(output_video_path, frames):
+    # input: output_video_path is the path where the resulting video is created
+    # input: frames is a list containing frames
+    # input: frame_duration is the duration in seconds each frame will be visible
+    # input: fps is the desired fps. maybe if we use lower fps it'll be better for long videos
+    # output: void
+    height = frames[0].shape[0]
+    width = frames[0].shape[1]
+    video_format = cv2.VideoWriter_fourcc(*"XVID")
+    video_writer = cv2.VideoWriter(output_video_path, video_format, 30, (width, height))
+    for frame in frames:
+        video_writer.write(np.uint8(frame))
+    video_writer.release()
+
+
 def cvshow(title, im):
     # cv2.namedWindow(title, cv2.WINDOW_NORMAL)
     cv2.namedWindow(title)
