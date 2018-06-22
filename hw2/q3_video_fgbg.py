@@ -34,7 +34,11 @@ def create_masked_video(fcn, src_video, res_video, skipframes=0):
     cols = frame.shape[1]
 
     video_format = cv.VideoWriter_fourcc(*"XVID")
-    video_writer = cv.VideoWriter(res_video, video_format, 30, (rows, cols)) # In the constructor (column, row). However in video_writer.write its (row, column).
+    video_writer = cv.VideoWriter(res_video, video_format, 30, (cols, rows)) # In the constructor (column, row). However in video_writer.write its (row, column).
+
+    video_format = cv.VideoWriter_fourcc(*"XVID")
+    mask_video_path = pwd + '/our_data/mask.avi'
+    video_writer_mask = cv.VideoWriter(mask_video_path, video_format, 30, (rows, cols))
 
     i = 0
     while more_frames:
@@ -62,6 +66,18 @@ def create_masked_video(fcn, src_video, res_video, skipframes=0):
         # Write segmented image to output video
         video_writer.write(masked)
 
+        mask = 255 * mask
+        mask = np.uint8(mask)
+        mask = cv.cvtColor(mask, mask, cv.CV_GRAY2)
+
+        print(np.unique(mask))
+        print(np.unique(frame))
+        print(np.shape(mask))
+        print(np.shape(frame))
+
+        video_writer_mask.write(mask)
+
+    video_writer_mask.release()
     video_writer.release()
     print("DONE")
     return
