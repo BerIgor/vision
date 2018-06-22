@@ -1,8 +1,11 @@
 import numpy as np
 import cv2
+from hw4 import utils
 
 if __name__ == "__main__":
-    frame_list = get_frames_uniform()
+    pwd = utils.get_pwd()
+    source_video_path = pwd + '/our_data/ariel.mp4'
+    frame_list = utils.get_all_frames(source_video_path)
 
     face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
     eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
