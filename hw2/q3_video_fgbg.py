@@ -67,13 +67,7 @@ def create_masked_video(fcn, src_video, res_video, skipframes=0):
         video_writer.write(masked)
 
         mask = 255 * mask
-        mask = np.uint8(mask)
-        mask = cv.cvtColor(mask, mask, cv.CV_GRAY2)
-
-        print(np.unique(mask))
-        print(np.unique(frame))
-        print(np.shape(mask))
-        print(np.shape(frame))
+        mask = cv.cvtColor(np.uint8(mask), cv.COLOR_GRAY2BGR)
 
         video_writer_mask.write(mask)
 
@@ -121,7 +115,7 @@ if __name__ == "__main__":
     model_path = pwd + '/our_data/resnet_34_8s_68.pth'
     source_video_path = pwd + '/our_data/ariel.mp4'
     target_video_path = pwd + '/our_data/ariel_mask.avi'  # OpenCV must have avi as output. https://github.com/ContinuumIO/anaconda-issues/issues/223#issuecomment-285523938
-    skip_frames = 15
+    skip_frames = 0
 
     # Create and load weights to pre-trained Resnet-34 model:
     from pathlib import Path
