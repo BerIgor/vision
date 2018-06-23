@@ -38,25 +38,75 @@ def image_move(image):
     return
 
 
+def image_move2(image):
+
+    grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    lap = cv2.Laplacian(grey, cv2.CV_64F)
+
+    movement_mat = np.zeros((image.shape[0], image.shape[1], 2))
+    print(np.shape(movement_mat))
+    # construct motion matrix, each pixel contains coordinates: from where to take the pixel
+    for x in range(1, image.shape[1] - 1):
+        for y in range(1, image.shape[0] - 1):
+            d_section = utils.get_sub_image(lap, (x, y), 1)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(d_section)  # the points returned are in r,c format
+
+            r, c = max_loc
+            r -= 1
+            c -= 1
+
+            r = y + r
+            c = x + c
+            movement_mat[y, x, 0] = r
+            movement_mat[y, x, 1] = c
+
+    moved_image = image.copy()
+
+    for x in range(1, image.shape[1] - 1):
+        for y in range(1, image.shape[0] - 1):
+            src_r = int(movement_mat[y, x, 0])
+            src_c = int(movement_mat[y, x, 1])
+            moved_image[y, x, :] = image[src_r, src_c, :]
+
+    return moved_image
+
+
 if __name__ == "__main__":
 
     full_frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
     full_frame_mask_list = utils.get_all_frames(utils.get_pwd() + '/our_data/mask.avi')
 
-    mask = full_frame_mask_list[0]
-
-    frame = full_frame_list[0]
-    ex = np.zeros_like(frame)
-    rows = frame.shape[0]
-    cols = frame.shape[1]
-
-    # mask_inv = cv2.threshold(mask, 100, 1.0, cv2.THRESH_BINARY)
-    # frame_bg = np.multiply(mask_inv, frame)
+    rows, cols, _ = np.shape(full_frame_list[0])
 
     background = cv2.imread(utils.get_pwd() + '/our_data/starry_bg.jpg')
+    background = cv2.resize(background, dsize=(cols, rows))  # TODO: is this good?
     texture = cv2.imread(utils.get_pwd() + '/our_data/style.jpg')
 
-    image_move(background)
+    new_frame_list = list()
+
+    background_moved = background
+    for i in range(min(len(full_frame_mask_list), len(full_frame_list))):
+
+        # gather images
+        background_moved = image_move2(background_moved)
+        frame = full_frame_list[i]
+        mask = full_frame_mask_list[i]
+
+        _, mask = cv2.threshold(mask, 127, 1, cv2.THRESH_BINARY)
+
+        var = cv2.Laplacian(frame, cv2.CV_64F).var()
+        if var < 50:
+            continue  # skip this frame
+
+        # handle masking
+        fg = np.multiply(mask, frame)
+        mask_inv = 1 - mask
+        bg = np.multiply(mask_inv, background_moved)
+
+        new_frame = fg + bg
+        new_frame_list.append(new_frame)
+
+    utils.make_normal_video(utils.get_pwd() + '/our_results/combined.avi', new_frame_list)
 
     exit()
     background_resized = cv2.resize(background, dsize=(cols, rows))
