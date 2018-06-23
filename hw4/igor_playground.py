@@ -38,14 +38,12 @@ def image_move(image):
     return
 
 
-def image_move2(image):
+def calc_motion_mat(image):
 
     grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     lap = cv2.Laplacian(grey, cv2.CV_64F)
 
     movement_mat = np.zeros((image.shape[0], image.shape[1], 2))
-    print(np.shape(movement_mat))
-    # construct motion matrix, each pixel contains coordinates: from where to take the pixel
     for x in range(1, image.shape[1] - 1):
         for y in range(1, image.shape[0] - 1):
             d_section = utils.get_sub_image(lap, (x, y), 1)
@@ -59,13 +57,17 @@ def image_move2(image):
             c = x + c
             movement_mat[y, x, 0] = r
             movement_mat[y, x, 1] = c
+    return movement_mat
+
+
+def image_move2(image, motion_matrix):
 
     moved_image = image.copy()
 
     for x in range(1, image.shape[1] - 1):
         for y in range(1, image.shape[0] - 1):
-            src_r = int(movement_mat[y, x, 0])
-            src_c = int(movement_mat[y, x, 1])
+            src_r = int(motion_matrix[y, x, 0])
+            src_c = int(motion_matrix[y, x, 1])
             moved_image[y, x, :] = image[src_r, src_c, :]
 
     return moved_image
@@ -82,13 +84,15 @@ if __name__ == "__main__":
     background = cv2.resize(background, dsize=(cols, rows))  # TODO: is this good?
     texture = cv2.imread(utils.get_pwd() + '/our_data/style.jpg')
 
+    motion_mat = calc_motion_mat(full_frame_list[0])
+
     new_frame_list = list()
 
     background_moved = background
     for i in range(min(len(full_frame_mask_list), len(full_frame_list))):
 
         # gather images
-        background_moved = image_move2(background_moved)
+        background_moved = image_move2(background_moved, motion_mat)
         frame = full_frame_list[i]
         mask = full_frame_mask_list[i]
 
