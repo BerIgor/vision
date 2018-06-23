@@ -52,3 +52,13 @@ def cvshow(title, im):
     cv2.namedWindow(title)
     cv2.imshow(title, im)
     cv2.waitKey()
+
+
+def get_sub_image(image, point, w_size):
+    min_x = max(point[0] - w_size, 0)
+    min_y = max(point[1] - w_size, 0)
+    max_x = min(point[0] + w_size, image.shape[1])
+    max_y = min(point[1] + w_size, image.shape[0])
+
+    sub_image = image[min_y:max_y + 1, min_x:max_x + 1]
+    return sub_image
