@@ -55,3 +55,18 @@ def cvshow(title, im):
 
 def xy_vec_to_tuples_list(xy_vec):
     return [(xy_vec[i], xy_vec[i + 1]) for i in range(0, xy_vec.size, 2)]
+
+def get_sub_image(image, point, w_size):
+    min_x = max(point[0] - w_size, 0)
+    min_y = max(point[1] - w_size, 0)
+    max_x = min(point[0] + w_size, image.shape[1])
+    max_y = min(point[1] + w_size, image.shape[0])
+
+    sub_image = image[min_y:max_y + 1, min_x:max_x + 1]
+    return sub_image
+
+def video_save_frame(frame, main_dir, sub_dir, frame_number):
+    path = str(main_dir) + '/our_data/' + str(sub_dir) + '/' + str(frame_number) + '.jpg'
+    cv2.imwrite(path, frame)
+    return
+
