@@ -3,6 +3,7 @@ import cv2
 import sklearn.preprocessing
 import math
 import matplotlib.pyplot as plt
+from sklearn import linear_model
 from hw4 import utils
 from hw4 import style_transfer
 from hw4 import texture_transfer
@@ -161,10 +162,19 @@ if __name__ == "__main__":
 
     utils.make_normal_video(utils.get_pwd() + '/our_results/combined.avi', final_frames_list)
 
-    plt.plot(M_list, range(len(final_frames_list)), 'ro')
-    # plt.axis([0, 6, 0, 20])
+    plt.plot(range(len(final_frames_list)), M_list, 'ro')
     plt.show()
+    ransac_regressor = linear_model.RANSACRegressor()
+    frame_nums = [i for i in range(len(final_frames_list))]
+    frame_nums = np.reshape(frame_nums, (1, -1))
 
+    M_array = np.reshape(np.asarray(M_list), (1, -1))
+
+    ransac_regressor.fit(frame_nums, M_array)
+    predict = ransac_regressor.predict(frame_nums)
+
+    plt.plot(frame_nums.tolist(), predict.tolist(), 'ro')
+    plt.show()
     exit()
 
 
