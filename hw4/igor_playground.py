@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 import sklearn.preprocessing
+import math
+import matplotlib.pyplot as plt
 from hw4 import utils
 from hw4 import style_transfer
 from hw4 import texture_transfer
@@ -103,26 +105,68 @@ if __name__ == "__main__":
     full_frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
     full_frame_mask_list = utils.get_all_frames(utils.get_pwd() + '/our_data/mask.avi')
     texture = cv2.imread(utils.get_pwd() + '/our_data/style.jpg')
+    rows, cols, _ = np.shape(full_frame_list[0])
+
+    background = cv2.imread(utils.get_pwd() + '/our_data/starry_bg.jpg')
+    # background = background[:rows, :cols, :]
+    bg_motion_list = calc_bg_motion_frames(background)
+    new_bg_motion_list = list()
+    for bg_frame in bg_motion_list:
+        for i in range(15):
+            new_bg_motion_list.append(bg_frame)
+
+    bg_motion_list = new_bg_motion_list
+    reversed_bg_motion_list = bg_motion_list.copy()
+    reversed_bg_motion_list.reverse()
+    bg_motion_list.extend(reversed_bg_motion_list)
 
     ind = get_indices_to_keep(full_frame_list)  # Filter blurred frames
     full_frame_list = [full_frame_list[i] for i in ind]
     full_frame_mask_list = [full_frame_mask_list[i] for i in ind]
 
     frames_features = ariel_playground.detect_features(full_frame_list)
-    print(frames_features[0])
+
+    frame_0_points = frames_features[0]
+    final_frames_list = list()
+    bg_index = 0
+    M_list = list()
+    for i in range(len(full_frame_list)):
+        # Handle the frame
+        if len((frames_features[i])) > 3:
+            continue
+        M = cv2.getAffineTransform(np.float32(frames_features[i]), np.float32(frame_0_points))
+        stabilized_frame = cv2.warpAffine(full_frame_list[i], M, (cols, rows))
+
+        M_list.append(M[0, 2])
+
+        background_moved = bg_motion_list[bg_index % len(bg_motion_list)]
+        M_bg = M.copy()
+        M_bg[:, 0:2] = np.array([[1, 0], [0, 1]])
+        M_bg[1, 2] = np.array([0])
+        background_moved = cv2.warpAffine(background_moved, M_bg, (cols, rows))
+        background_moved = background_moved[:rows, :cols, :]
+
+        # _, mask = cv2.threshold(full_frame_mask_list[i], 127, 1, cv2.THRESH_BINARY)
+        stabilized_mask = cv2.warpAffine(full_frame_mask_list[i], M, (cols, rows))
+        _, stabilized_mask = cv2.threshold(stabilized_mask, 127, 1, cv2.THRESH_BINARY)
+
+        fg = np.multiply(stabilized_mask, stabilized_frame)
+        mask_inv = 1 - stabilized_mask
+        bg = np.multiply(mask_inv, background_moved)
+
+        new_frame = fg + bg
+
+        final_frames_list.append(new_frame)
+        bg_index += 1
+
+    utils.make_normal_video(utils.get_pwd() + '/our_results/combined.avi', final_frames_list)
+
+    plt.plot(M_list, range(len(final_frames_list)), 'ro')
+    # plt.axis([0, 6, 0, 20])
+    plt.show()
+
     exit()
 
-    rows, cols, _ = np.shape(full_frame_list[0])
-
-    background = cv2.imread(utils.get_pwd() + '/our_data/starry_bg.jpg')
-    background = background[:rows, :cols, :]
-
-    bg_motion_list = calc_bg_motion_frames(background)
-    bg_motion_list.extend(bg_motion_list)
-    bg_motion_list.extend(bg_motion_list)
-    reversed_bg_motion_list = bg_motion_list.copy()
-    reversed_bg_motion_list.reverse()
-    bg_motion_list.extend(reversed_bg_motion_list)
 
     new_frame_list = list()
 
@@ -134,7 +178,7 @@ if __name__ == "__main__":
         # background_moved = image_move2(background_moved, motion_mat)
         # background_moved = image_move(background_moved)
         background_moved = bg_motion_list[i % len(bg_motion_list)]
-        background_moved = cv2.GaussianBlur(background_moved, ksize=(5, 5), sigmaX=0, sigmaY=0)
+        # background_moved = cv2.GaussianBlur(background_moved, ksize=(5, 5), sigmaX=0, sigmaY=0)
         frame = full_frame_list[i]
         mask = full_frame_mask_list[i]
 
