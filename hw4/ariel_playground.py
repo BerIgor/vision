@@ -3,10 +3,12 @@ import cv2
 from hw4 import utils
 from hw3 import q3
 
+
 def is_point_in_rect(x,y,w,h,p_x,p_y):
     return p_x > x and p_x < x + w and p_y > y and  p_y < y + h
 
-if __name__ == "__main__":
+
+def detect_features():
     pwd = utils.get_pwd()
 
     # Input
@@ -34,6 +36,7 @@ if __name__ == "__main__":
     bad_frames_cnt = 0
     very_bad_frames_cnt = 0
 
+    frames_features = list()
     for i in range(len(frame_list)):
         # Read the image
         image = frame_list[i]
@@ -143,8 +146,12 @@ if __name__ == "__main__":
         cv2.imwrite(haar_dir_results + '/' + str(i) + '.jpg', image)
         # cv2.imshow("Faces found", image)
         # cv2.waitKey()
-
+        frames_features.append(features_in_face_filtered)
     print("Nose wasn't detected in " + str(no_nose_cnt) + " frames")
     print("number of bad faces is: " + str(bad_frames_cnt) + " and very bad faces is: " + str(very_bad_frames_cnt))
+    return frames_features
 
+
+if __name__ == "__main__":
+    features = detect_features()
 

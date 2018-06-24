@@ -4,6 +4,22 @@ import sklearn.preprocessing
 from hw4 import utils
 from hw4 import style_transfer
 from hw4 import texture_transfer
+from hw4 import ariel_playground
+
+
+def get_indices_to_keep(frame_list):
+    # calc laplacian of all frames
+    var_list = list()
+    for frame in frame_list:
+        var = cv2.Laplacian(frame, cv2.CV_64F).var()
+        var_list.append(var)
+
+    ind = np.argpartition(var_list, 5)[5:]
+    ind = sorted(ind)
+
+    # filtered_frame_list = [frame_list[i] for i in ind]
+
+    return ind
 
 
 def pixel_move(image, image_lap, point):
@@ -27,15 +43,15 @@ def image_move(image):
     # lap = cv2.Laplacian(grey, cv2.CV_64F)
 
     moved_image = image.copy()
-    for i in range(30):
-        grey = cv2.cvtColor(moved_image, cv2.COLOR_BGR2GRAY)
-        lap = cv2.Laplacian(grey, cv2.CV_64F)
-        for x in range(1, image.shape[1] - 1):
-            for y in range(1, image.shape[0] - 1):
-                moved_image[y, x, :] = pixel_move(image, lap, (x, y))
-        cv2.imwrite(utils.get_pwd() + '/our_results/image_move' + str(i) + '.jpg', moved_image)
 
-    return
+    grey = cv2.cvtColor(moved_image, cv2.COLOR_BGR2GRAY)
+    lap = cv2.Laplacian(grey, cv2.CV_64F)
+    for x in range(1, image.shape[1] - 1):
+        for y in range(1, image.shape[0] - 1):
+            moved_image[y, x, :] = pixel_move(image, lap, (x, y))
+        # cv2.imwrite(utils.get_pwd() + '/our_results/image_move' + str(i) + '.jpg', moved_image)
+
+    return moved_image
 
 
 def calc_motion_mat(image):
@@ -61,38 +77,60 @@ def calc_motion_mat(image):
 
 
 def image_move2(image, motion_matrix):
-
     moved_image = image.copy()
-
     for x in range(1, image.shape[1] - 1):
         for y in range(1, image.shape[0] - 1):
             src_r = int(motion_matrix[y, x, 0])
             src_c = int(motion_matrix[y, x, 1])
             moved_image[y, x, :] = image[src_r, src_c, :]
-
     return moved_image
+
+
+def calc_bg_motion_frames(image, frames=5):
+    motion_frames_list = list()
+    moved_bg = image.copy()
+    for i in range(frames):
+        # motion_mat = calc_motion_mat(moved_bg)
+        # moved_bg = image_move2(moved_bg, motion_mat)
+        moved_bg = image_move(moved_bg)
+        motion_frames_list.append(moved_bg)
+
+    return motion_frames_list
 
 
 if __name__ == "__main__":
 
     full_frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
     full_frame_mask_list = utils.get_all_frames(utils.get_pwd() + '/our_data/mask.avi')
+    texture = cv2.imread(utils.get_pwd() + '/our_data/style.jpg')
+
+    ind = get_indices_to_keep(full_frame_list)  # Filter blurred frames
+    full_frame_list = [full_frame_list[i] for i in ind]
+    full_frame_mask_list = [full_frame_mask_list[i] for i in ind]
 
     rows, cols, _ = np.shape(full_frame_list[0])
 
     background = cv2.imread(utils.get_pwd() + '/our_data/starry_bg.jpg')
-    background = cv2.resize(background, dsize=(cols, rows))  # TODO: is this good?
-    texture = cv2.imread(utils.get_pwd() + '/our_data/style.jpg')
+    background = background[:rows, :cols, :]
 
-    motion_mat = calc_motion_mat(full_frame_list[0])
+    bg_motion_list = calc_bg_motion_frames(background)
+    bg_motion_list.extend(bg_motion_list)
+    bg_motion_list.extend(bg_motion_list)
+    reversed_bg_motion_list = bg_motion_list.copy()
+    reversed_bg_motion_list.reverse()
+    bg_motion_list.extend(reversed_bg_motion_list)
 
     new_frame_list = list()
 
     background_moved = background
     for i in range(min(len(full_frame_mask_list), len(full_frame_list))):
 
+        # motion_mat = calc_motion_mat(background_moved)
         # gather images
-        background_moved = image_move2(background_moved, motion_mat)
+        # background_moved = image_move2(background_moved, motion_mat)
+        # background_moved = image_move(background_moved)
+        background_moved = bg_motion_list[i % len(bg_motion_list)]
+        background_moved = cv2.GaussianBlur(background_moved, ksize=(5, 5), sigmaX=0, sigmaY=0)
         frame = full_frame_list[i]
         mask = full_frame_mask_list[i]
 
@@ -110,7 +148,7 @@ if __name__ == "__main__":
         new_frame = fg + bg
         new_frame_list.append(new_frame)
 
-    utils.make_normal_video(utils.get_pwd() + '/our_results/combined.avi', new_frame_list)
+    utils.make_normal_video(utils.get_pwd() + '/our_results/combined2.avi', new_frame_list)
 
     exit()
     background_resized = cv2.resize(background, dsize=(cols, rows))
