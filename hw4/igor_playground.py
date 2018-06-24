@@ -108,6 +108,10 @@ if __name__ == "__main__":
     full_frame_list = [full_frame_list[i] for i in ind]
     full_frame_mask_list = [full_frame_mask_list[i] for i in ind]
 
+    frames_features = ariel_playground.detect_features(full_frame_list)
+    print(frames_features[0])
+    exit()
+
     rows, cols, _ = np.shape(full_frame_list[0])
 
     background = cv2.imread(utils.get_pwd() + '/our_data/starry_bg.jpg')

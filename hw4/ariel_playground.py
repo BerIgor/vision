@@ -8,12 +8,12 @@ def is_point_in_rect(x,y,w,h,p_x,p_y):
     return p_x > x and p_x < x + w and p_y > y and  p_y < y + h
 
 
-def detect_features():
+def detect_features(frame_list):
     pwd = utils.get_pwd()
 
     # Input
     # frame_list = utils.get_frames_uniform(utils.get_pwd() + '/our_data/ariel.avi', 13)
-    frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
+    # frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
     # image = frame_list[130]
     haar_dir = pwd + "/haar_xmls"
     faceCascPath = haar_dir + "/haarcascade_frontalface_default.xml"
@@ -153,5 +153,6 @@ def detect_features():
 
 
 if __name__ == "__main__":
-    features = detect_features()
+    frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
+    features = detect_features(frame_list)
 
