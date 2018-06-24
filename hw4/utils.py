@@ -70,3 +70,24 @@ def video_save_frame(frame, main_dir, sub_dir, frame_number):
     cv2.imwrite(path, frame)
     return
 
+def clean_output_directories(images_dir_path, stab_images_dir_path=None):
+    import shutil
+
+    # Delete and re-create current output folders
+    if os.path.isdir(images_dir_path):
+        shutil.rmtree(images_dir_path)
+    try:
+        original_umask = os.umask(0)
+        os.makedirs(images_dir_path)
+    finally:
+        os.umask(original_umask)
+
+    if stab_images_dir_path is not None:
+        if os.path.isdir(stab_images_dir_path):
+            shutil.rmtree(stab_images_dir_path)
+        try:
+            original_umask = os.umask(0)
+            os.makedirs(stab_images_dir_path)
+        finally:
+            os.umask(original_umask)
+

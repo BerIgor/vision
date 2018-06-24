@@ -7,26 +7,30 @@ def is_point_in_rect(x,y,w,h,p_x,p_y):
     return p_x > x and p_x < x + w and p_y > y and  p_y < y + h
 
 if __name__ == "__main__":
-
-    # Get user supplied values
     pwd = utils.get_pwd()
+
+    # Input
     # frame_list = utils.get_frames_uniform(utils.get_pwd() + '/our_data/ariel.avi', 13)
     frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
     # image = frame_list[130]
     haar_dir = pwd + "/haar_xmls"
     faceCascPath = haar_dir + "/haarcascade_frontalface_default.xml"
     eyeCascPath = haar_dir + "/haarcascade_eye.xml"
-    # smileCascPath = haar_dir + "/haarcascade_smile.xml"
     noseCascPath = haar_dir + "/Nariz_nose.xml"
     mouthCascPath = haar_dir + "/Mouth.xml"
 
-    # Create the haar cascade
+    # Output
+    haar_dir_results = pwd + "/our_results/haar_detection"
+    utils.clean_output_directories(haar_dir_results)
+
+    # Construct the haar cascades
     faceCascade = cv2.CascadeClassifier(faceCascPath)
     eyeCascade = cv2.CascadeClassifier(eyeCascPath)
-    # smileCascade = cv2.CascadeClassifier(smileCascPath)
     noseCascade = cv2.CascadeClassifier(noseCascPath)
     mouthCascade = cv2.CascadeClassifier(mouthCascPath)
 
+    # Counters
+    no_nose_cnt = 0
     bad_frames_cnt = 0
     very_bad_frames_cnt = 0
 
@@ -66,22 +70,52 @@ if __name__ == "__main__":
             eyes = eyeCascade.detectMultiScale(roi_gray,scaleFactor=1.1, minNeighbors=6, minSize=(20, 20))
 
             cnt = 0
+            eye_bottom = list()
             for (ex, ey, ew, eh) in eyes:
                 cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
-                features_in_eyes = [feature for feature in features_in_face if is_point_in_rect(x+ex, y+ey, ew, eh, feature[0],feature[1])]
-                if len(features_in_eyes) > 0:
-                    features_in_face_filtered.append(features_in_eyes[0])
-                cnt+=1
-                if cnt == 2: break
+                # Take center of bounding box - works better than feature filtering
+                eye_feature = (x + ex + int(ew/2), y + ey + int(eh/2))
+                # Left eye always first in list
+                if len(features_in_face_filtered) > 0:
+                    if ex < features_in_face_filtered[0][0]:
+                        features_in_face_filtered.insert(0, eye_feature)
+                    else:
+                        features_in_face_filtered.append(eye_feature)
+                else:
+                    features_in_face_filtered.append(eye_feature)
+
+                # features_in_eyes = [feature for feature in features_in_face if is_point_in_rect(x+ex, y+ey, ew, eh, feature[0],feature[1])]
+                # if len(features_in_eyes) > 0:
+                #     features_in_face_filtered.append(features_in_eyes[0])
+                eye_bottom.append(ey+eh)
+                # Detect only 2 eyes
+                cnt += 1
+
+            eye_bottom_avg = sum(eye_bottom)/len(eye_bottom) # With respect to top of roi
+            # Filter out eyes that are far from average
+
 
             # Nose
             nose = noseCascade.detectMultiScale(roi_gray) #, scaleFactor=1.1, minNeighbors=5, minSize=(20, 20))
             for (nx, ny, nw, nh) in nose:
+                if ny - eye_bottom_avg > 5 and len(nose) > 1:
+                    # Assumption that nose upper border is very close to eye bottom border
+                    continue
                 cv2.rectangle(roi_color, (nx, ny), (nx + nw, ny + nh), (0, 255, 0), 2)
-                features_in_nose = [feature for feature in features_in_face if is_point_in_rect(x+nx, y+ny, nw, nh, feature[0],feature[1])]
-                if len(features_in_nose) > 0:
-                    features_in_face_filtered.append(features_in_nose[0])
+                # Take center of bounding box - works better than feature filtering
+                nose_feature = (x + nx + int(nw/2), y + ny + int(nh/2))
+                features_in_face_filtered.append(nose_feature)
+                # # Take nose from  detected features
+                # features_in_nose = [feature for feature in features_in_face if is_point_in_rect(x+nx, y+ny, nw, nh, feature[0],feature[1])]
+                # if len(features_in_nose) > 0:
+                #     features_in_face_filtered.append(features_in_nose[0])
                 break
+
+            if (len(nose) == 0 or len(features_in_face_filtered) < 3):
+                # If no nose was detected, take nose coordinates of last nose
+                print("Nose wasn't detected in frame " + str(i) + " - taking last detected nose point")
+                features_in_face_filtered.append(nose_feature)
+                no_nose_cnt += 1
 
             # Mouth
             mouth = mouthCascade.detectMultiScale(roi_gray) #
@@ -106,10 +140,11 @@ if __name__ == "__main__":
                 # else:
                 #     bad_frames_cnt += 1
 
-        utils.video_save_frame(image, pwd, 'haar_detection', i)
+        cv2.imwrite(haar_dir_results + '/' + str(i) + '.jpg', image)
         # cv2.imshow("Faces found", image)
         # cv2.waitKey()
 
+    print("Nose wasn't detected in " + str(no_nose_cnt) + " frames")
     print("number of bad faces is: " + str(bad_frames_cnt) + " and very bad faces is: " + str(very_bad_frames_cnt))
 
 

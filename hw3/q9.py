@@ -277,7 +277,8 @@ def stabilize_frames(frame_list, frames_transformations_list, save_frames=False)
 def xy_vec_to_tuples_list(xy_vec):
     return [(xy_vec[i], xy_vec[i + 1]) for i in range(0, xy_vec.size, 2)]
 
-def clean_output_directories(images_dir_path, stab_images_dir_path):
+
+def clean_output_directories(images_dir_path, stab_images_dir_path=None):
     import shutil
 
     # Delete and re-create current output folders
@@ -289,13 +290,14 @@ def clean_output_directories(images_dir_path, stab_images_dir_path):
     finally:
         os.umask(original_umask)
 
-    if os.path.isdir(stab_images_dir_path):
-        shutil.rmtree(stab_images_dir_path)
-    try:
-        original_umask = os.umask(0)
-        os.makedirs(stab_images_dir_path)
-    finally:
-        os.umask(original_umask)
+    if stab_images_dir_path is not None:
+        if os.path.isdir(stab_images_dir_path):
+            shutil.rmtree(stab_images_dir_path)
+        try:
+            original_umask = os.umask(0)
+            os.makedirs(stab_images_dir_path)
+        finally:
+            os.umask(original_umask)
 
 
 
