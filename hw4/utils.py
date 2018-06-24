@@ -52,3 +52,6 @@ def cvshow(title, im):
     cv2.namedWindow(title)
     cv2.imshow(title, im)
     cv2.waitKey()
+
+def xy_vec_to_tuples_list(xy_vec):
+    return [(xy_vec[i], xy_vec[i + 1]) for i in range(0, xy_vec.size, 2)]

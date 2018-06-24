@@ -1,38 +1,115 @@
 import numpy as np
 import cv2
 from hw4 import utils
+from hw3 import q3
+
+def is_point_in_rect(x,y,w,h,p_x,p_y):
+    return p_x > x and p_x < x + w and p_y > y and  p_y < y + h
 
 if __name__ == "__main__":
 
     # Get user supplied values
-
-    frame_list = utils.get_all_frames(video_path)
-    imagePath = sys.argv[1]
-    cascPath = "haarcascade_frontalface_default.xml"
+    pwd = utils.get_pwd()
+    # frame_list = utils.get_frames_uniform(utils.get_pwd() + '/our_data/ariel.avi', 13)
+    frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
+    # image = frame_list[130]
+    haar_dir = pwd + "/haar_xmls"
+    faceCascPath = haar_dir + "/haarcascade_frontalface_default.xml"
+    eyeCascPath = haar_dir + "/haarcascade_eye.xml"
+    # smileCascPath = haar_dir + "/haarcascade_smile.xml"
+    noseCascPath = haar_dir + "/Nariz_nose.xml"
+    mouthCascPath = haar_dir + "/Mouth.xml"
 
     # Create the haar cascade
-    faceCascade = cv2.CascadeClassifier(cascPath)
+    faceCascade = cv2.CascadeClassifier(faceCascPath)
+    eyeCascade = cv2.CascadeClassifier(eyeCascPath)
+    # smileCascade = cv2.CascadeClassifier(smileCascPath)
+    noseCascade = cv2.CascadeClassifier(noseCascPath)
+    mouthCascade = cv2.CascadeClassifier(mouthCascPath)
 
-    # Read the image
-    image = cv2.imread(imagePath)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    bad_frames_cnt = 0
+    very_bad_frames_cnt = 0
 
-    # Detect faces in the image
-    faces = faceCascade.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(30, 30),
-        flags=cv2.cv.CV_HAAR_SCALE_IMAGE
-    )
+    for i in range(len(frame_list)):
+        # Read the image
+        image = frame_list[i]
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    print("Found {0} faces!".format(len(faces)))
+        # Detect features in the image
+        feature_params = dict(maxCorners=gray.size, qualityLevel=0.05, minDistance=5, blockSize=3)
+        p0 = cv2.goodFeaturesToTrack(gray, mask=None, **feature_params)
+        p0_1d = p0[:, 0, :].flatten()
+        p0_tuples = utils.xy_vec_to_tuples_list(p0_1d)
+        # utils.cvshow("goodFeaturesToTrack", q3.mark_points(image.copy(), p0_tuples))
 
-    # Draw a rectangle around the faces
-    for (x, y, w, h) in faces:
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        # Detect faces in the image
+        faces = faceCascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        # https://stackoverflow.com/questions/20801015/recommended-values-for-opencv-detectmultiscale-parameters#answer-20805153
 
-    cv2.imshow("Faces found", image)
-    cv2.waitKey(0)
+        # Draw a rectangle around the faces
+        for (x, y, w, h) in faces:
+            if y > int(image.shape[0]/2):
+                # Assuming face start at the upper half of the image - TODO - is this a valid assumption?
+                continue
+
+            # Mark face area
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            roi_gray = gray[y:y + h, x:x + w]
+            roi_color = image[y:y + h, x:x + w]
+
+            # Find all facial features:
+            features_in_face = [(p0_1d[i], p0_1d[i + 1]) for i in range(0, p0_1d.size, 2) if is_point_in_rect(x, y, w, h, p0_1d[i],p0_1d[i + 1])]
+
+            # Extract relevant facial features
+            # Eyes
+            features_in_face_filtered = list()
+            eyes = eyeCascade.detectMultiScale(roi_gray,scaleFactor=1.1, minNeighbors=6, minSize=(20, 20))
+
+            cnt = 0
+            for (ex, ey, ew, eh) in eyes:
+                cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+                features_in_eyes = [feature for feature in features_in_face if is_point_in_rect(x+ex, y+ey, ew, eh, feature[0],feature[1])]
+                if len(features_in_eyes) > 0:
+                    features_in_face_filtered.append(features_in_eyes[0])
+                cnt+=1
+                if cnt == 2: break
+
+            # Nose
+            nose = noseCascade.detectMultiScale(roi_gray) #, scaleFactor=1.1, minNeighbors=5, minSize=(20, 20))
+            for (nx, ny, nw, nh) in nose:
+                cv2.rectangle(roi_color, (nx, ny), (nx + nw, ny + nh), (0, 255, 0), 2)
+                features_in_nose = [feature for feature in features_in_face if is_point_in_rect(x+nx, y+ny, nw, nh, feature[0],feature[1])]
+                if len(features_in_nose) > 0:
+                    features_in_face_filtered.append(features_in_nose[0])
+                break
+
+            # Mouth
+            mouth = mouthCascade.detectMultiScale(roi_gray) #
+            # for (mx, my, mw, mh) in mouth:
+            #     if my < int(h/2):
+            #         # Mouth - Assuming in lower half of mouth to filter false detections - TODO - is this a valid assumption?
+            #         continue
+            #     cv2.rectangle(roi_color, (mx, my), (mx + mw, my + mh), (0, 255, 0), 2)
+            #     features_in_mouth = [feature for feature in features_in_face if is_point_in_rect(x+mx, y+my, mw, mh, feature[0],feature[1])]
+            #     if len(features_in_mouth) > 0:
+            #         features_in_face_filtered.append(features_in_mouth[0])
+            #     break
+
+            # Plot filtered features on frame
+            # utils.cvshow("goodFeaturesToTrack", q3.mark_points(image, features_in_face))
+            q3.mark_points(image, features_in_face_filtered)
+
+            if len(features_in_face_filtered) < 3:
+                print("Found {0} faces, {1} eyes, {2} nose and {3} mouth in and total of {4} facial features in frame {5}! ".format(len(faces), len(eyes), len(nose), len(mouth), len(features_in_face_filtered), i))
+                # if len(features_in_face_filtered) < 3 :
+                #     very_bad_frames_cnt += 1
+                # else:
+                #     bad_frames_cnt += 1
+
+        utils.video_save_frame(image, pwd, 'haar_detection', i)
+        # cv2.imshow("Faces found", image)
+        # cv2.waitKey()
+
+    print("number of bad faces is: " + str(bad_frames_cnt) + " and very bad faces is: " + str(very_bad_frames_cnt))
 
 
