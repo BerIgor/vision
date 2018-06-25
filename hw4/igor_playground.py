@@ -101,6 +101,42 @@ def calc_bg_motion_frames(image, frames=5):
     return motion_frames_list
 
 
+def cartoonify_image(image):
+    num_down = 2  # number of downsampling steps
+    num_bilateral = 7  # number of bilateral filtering steps
+
+    # downsample image using Gaussian pyramid
+    img_color = image
+    for _ in range(num_down):
+        img_color = cv2.pyrDown(img_color)
+
+    # repeatedly apply small bilateral filter instead of
+    # applying one large filter
+    for _ in range(num_bilateral):
+        img_color = cv2.bilateralFilter(img_color, d=9,
+                                        sigmaColor=9,
+                                        sigmaSpace=7)
+
+    # upsample image to original size
+    for _ in range(num_down):
+        img_color = cv2.pyrUp(img_color)
+
+    img_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    img_blur = cv2.medianBlur(img_gray, 7)
+
+    img_edge = cv2.adaptiveThreshold(img_blur, 255,
+                                     cv2.ADAPTIVE_THRESH_MEAN_C,
+                                     cv2.THRESH_BINARY,
+                                     blockSize=9,
+                                     C=2)
+
+    img_edge = cv2.cvtColor(img_edge, cv2.COLOR_GRAY2RGB)
+    img_cartoon = cv2.bitwise_and(img_color, img_edge)
+
+    # display
+    return img_cartoon
+
+
 if __name__ == "__main__":
 
     full_frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
@@ -113,7 +149,7 @@ if __name__ == "__main__":
     bg_motion_list = calc_bg_motion_frames(background)
     new_bg_motion_list = list()
     for bg_frame in bg_motion_list:
-        for i in range(15):
+        for i in range(25):
             new_bg_motion_list.append(bg_frame)
 
     bg_motion_list = new_bg_motion_list
@@ -136,14 +172,18 @@ if __name__ == "__main__":
         if len((frames_features[i])) > 3:
             continue
         M = cv2.getAffineTransform(np.float32(frames_features[i]), np.float32(frame_0_points))
-        stabilized_frame = cv2.warpAffine(full_frame_list[i], M, (cols, rows))
+
+        cframe = cartoonify_image(full_frame_list[i])
+
+        stabilized_frame = cv2.warpAffine(cframe, M, (cols, rows))
 
         M_list.append(M[0, 2])
 
         background_moved = bg_motion_list[bg_index % len(bg_motion_list)]
         M_bg = M.copy()
-        M_bg[:, 0:2] = np.array([[1, 0], [0, 1]])
         M_bg[1, 2] = np.array([0])
+        M_bg = M_bg / 6
+        M_bg[:, 0:2] = np.array([[1, 0], [0, 1]])
         background_moved = cv2.warpAffine(background_moved, M_bg, (cols, rows))
         background_moved = background_moved[:rows, :cols, :]
 
@@ -156,6 +196,8 @@ if __name__ == "__main__":
         bg = np.multiply(mask_inv, background_moved)
 
         new_frame = fg + bg
+        # m = np.ones_like(cframe)
+        # new_frame = cv2.seamlessClone(fg, bg, stabilized_mask, (240, 360), cv2.NORMAL_CLONE)
 
         final_frames_list.append(new_frame)
         bg_index += 1
@@ -164,16 +206,16 @@ if __name__ == "__main__":
 
     plt.plot(range(len(final_frames_list)), M_list, 'ro')
     plt.show()
-    ransac_regressor = linear_model.RANSACRegressor()
-    frame_nums = [i for i in range(len(final_frames_list))]
-    frame_nums = np.reshape(frame_nums, (1, -1))
+    # ransac_regressor = linear_model.RANSACRegressor()
+    # frame_nums = [i for i in range(len(final_frames_list))]
+    # frame_nums = np.reshape(frame_nums, (1, -1))
 
-    M_array = np.reshape(np.asarray(M_list), (1, -1))
+    # M_array = np.reshape(np.asarray(M_list), (1, -1))
 
-    ransac_regressor.fit(frame_nums, M_array)
-    predict = ransac_regressor.predict(frame_nums)
+    # ransac_regressor.fit(frame_nums, M_array)
+    # predict = ransac_regressor.predict(frame_nums)
 
-    plt.plot(frame_nums.tolist(), predict.tolist(), 'ro')
+    # plt.plot(frame_nums.tolist(), predict.tolist(), 'ro')
     plt.show()
     exit()
 
