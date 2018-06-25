@@ -9,6 +9,7 @@ from hw4 import utils
 from hw4 import style_transfer
 from hw4 import texture_transfer
 from hw4 import ariel_playground
+from hw3 import q4
 
 
 def get_indices_to_keep(frame_list):
@@ -161,8 +162,8 @@ def combine_feature_lists(feature_list1, feature_list2):
     combined_frames_list = list()
     for i in range(len(feature_list1)):
         combined_list = list()
-        combined_list.append(feature_list1[i])
-        combined_list.append(feature_list2[i])
+        combined_list.extend(feature_list1[i])
+        combined_list.extend(feature_list2[i])
         combined_frames_list.append(combined_list)
     return combined_frames_list
 
@@ -189,25 +190,33 @@ if __name__ == "__main__":
 
     ind = get_indices_to_keep(full_frame_list)  # Filter blurred frames
     full_frame_list = [full_frame_list[i] for i in ind]
+
     full_frame_mask_list = [full_frame_mask_list[i] for i in ind]
 
     face_features = ariel_playground.detect_features(full_frame_list)
     extra_features = get_extra_point_lists()
     frames_features = combine_feature_lists(face_features, extra_features)
+
     # frames_features = ariel_playground.detect_features(full_frame_list)
 
     frame_0_points = frames_features[0]
     final_frames_list = list()
     bg_index = 0
     M_list = list()
+    print(len(full_frame_list))
+    print("starting")
     for i in range(len(full_frame_list)):
+        print(i)
         # Handle the frame
-        if len((frames_features[i])) > 3:
-            continue
-        M = cv2.getAffineTransform(np.float32(frames_features[i]), np.float32(frame_0_points))
+        # if len((frames_features[i])) > 6:
+        #     continue
 
+        # M = cv2.getAffineTransform(np.float32(frames_features[i]), np.float32(frame_0_points))
+        a, b = q4.get_transformation(np.float32(frame_0_points), np.float32(frames_features[i]))
+        M = np.hstack((a, b))
+        print(M)
         cframe = cartoonify_image(full_frame_list[i])
-
+        print(cframe.shape)
         stabilized_frame = cv2.warpAffine(cframe, M, (cols, rows))
 
         M_list.append(M[0, 2])
@@ -229,6 +238,7 @@ if __name__ == "__main__":
         bg = np.multiply(mask_inv, background_moved)
 
         new_frame = fg + bg
+        utils.cvshow("T", new_frame)
         # m = np.ones_like(cframe)
         # new_frame = cv2.seamlessClone(fg, bg, stabilized_mask, (240, 360), cv2.NORMAL_CLONE)
 
