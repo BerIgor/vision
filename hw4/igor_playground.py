@@ -3,6 +3,7 @@ import cv2
 import sklearn.preprocessing
 import math
 import matplotlib.pyplot as plt
+import re
 from sklearn import linear_model
 from hw4 import utils
 from hw4 import style_transfer
@@ -137,6 +138,35 @@ def cartoonify_image(image):
     return img_cartoon
 
 
+def get_extra_point_lists():
+    inf = open(utils.get_pwd() + '/our_results/joints/coco/shoulder_xy.txt')
+    frames_lists = list()
+    first = True
+    for line in inf:
+        if first is True:
+            first = False
+            continue
+        loc_list = list()
+        regex = re.findall('[0-9]+, [0-9]+', line)
+        for r in regex:
+            regex2 = re.split(', ', r)
+            x = int(regex2[0])
+            y = int(regex2[1])
+            loc_list.append((x, y))
+        frames_lists.append(loc_list)
+    return frames_lists
+
+
+def combine_feature_lists(feature_list1, feature_list2):
+    combined_frames_list = list()
+    for i in range(len(feature_list1)):
+        combined_list = list()
+        combined_list.append(feature_list1[i])
+        combined_list.append(feature_list2[i])
+        combined_frames_list.append(combined_list)
+    return combined_frames_list
+
+
 if __name__ == "__main__":
 
     full_frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
@@ -161,7 +191,10 @@ if __name__ == "__main__":
     full_frame_list = [full_frame_list[i] for i in ind]
     full_frame_mask_list = [full_frame_mask_list[i] for i in ind]
 
-    frames_features = ariel_playground.detect_features(full_frame_list)
+    face_features = ariel_playground.detect_features(full_frame_list)
+    extra_features = get_extra_point_lists()
+    frames_features = combine_feature_lists(face_features, extra_features)
+    # frames_features = ariel_playground.detect_features(full_frame_list)
 
     frame_0_points = frames_features[0]
     final_frames_list = list()
