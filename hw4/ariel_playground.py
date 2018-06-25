@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from hw4 import utils
+from hw4 import utils, OpenPoseImageREL
 from hw3 import q3
 
 
@@ -135,17 +135,59 @@ def detect_features(frame_list):
                 # print("Found {0} faces, {1} eyes, {2} nose and {3} mouth in and total of {4} facial features in frame {5}! ".format(len(faces), len(eyes), len(nose), len(mouth), len(features_in_face_filtered), i))
                 print("Found {0} faces, {1} eyes and {2} nose in and total of {3} facial features in frame {4}! ".format(len(faces), len(eyes), len(nose), len(mouth), len(features_in_face_filtered), i))
 
+        # New part - find shoulders
+        upperBodyCascPath = haar_dir + "/haarcascade_upperbody.xml"
+        upperBodyCascade = cv2.CascadeClassifier(upperBodyCascPath)
+        upperBody = upperBodyCascade.detectMultiScale(gray , scaleFactor=1.01) #, minNeighbors=5, minSize=(30, 30))
+        for (bx, by, bw, bh) in upperBody:
+            # Mark body area
+            cv2.rectangle(image, (bx, by), (bx + bw, by + bh), (0, 255, 0), 2)
+
+
+
+
         cv2.imwrite(haar_dir_results + '/' + str(i) + '.jpg', image)
         # cv2.imshow("Faces found", image)
         # cv2.waitKey()
         frames_features.append(features_in_face_filtered)
+
 
     print("Nose wasn't detected in " + str(no_nose_cnt) + " frames")
     print("number of bad faces is: " + str(bad_frames_cnt) + " and very bad faces is: " + str(very_bad_frames_cnt))
     return frames_features
 
 
+def detect_joints(frame_list):
+    joints_dir_results = utils.get_pwd() + "/our_results/joints"
+    file = open(joints_dir_results + '/coco/shoulder_xy.txt', 'w') # For
+    file.write("Frame #n: Right shoulder (Point 2), Right elbow (Point 3), Left shoulder (Point 5), Left elbow (Point 6) \n")
+    for i in range(len(frame_list)):
+        # Find joints
+        frame = frame_list[i]
+
+        # Based on MPI DB
+        # keypoints, skeleton = OpenPoseImageREL.get_pose(frame.copy(), "MPI")
+        # cv2.imwrite(joints_dir_results + '/mpi/' + str(i) + '_keypoints.jpg', keypoints)
+
+        # Based on COCO DB
+        keypoints, skeleton, shoulder_points = OpenPoseImageREL.get_pose(frame.copy(), "COCO")
+        cv2.imwrite(joints_dir_results + '/coco/' + str(i) + '_keypoints.jpg', keypoints)
+
+        # Write result to file
+        RS = shoulder_points[0] if (len(shoulder_points) > 0) else (-1, -1)
+        RE = shoulder_points[1] if (len(shoulder_points) > 1) else (-1, -1)
+        LS = shoulder_points[2] if (len(shoulder_points) > 2) else (-1, -1)
+        LE = shoulder_points[3] if (len(shoulder_points) > 3) else (-1, -1)
+        file.write("%s: %s, %s, %s, %s \n" % (i, RS, RE, LS, LE))
+
+    file.close()
+
+
 if __name__ == "__main__":
     frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
-    features = detect_features(frame_list)
+    # features = detect_features(frame_list)
+    detect_joints(frame_list)
+
+
+
 
