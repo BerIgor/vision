@@ -37,6 +37,7 @@ def detect_features(frame_list):
     for i in range(len(frame_list)):
         # Read the image
         image = frame_list[i]
+        image_dup = image.copy(); # For drawing and showing results, without changing original image
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # Detect features in the image
@@ -57,9 +58,9 @@ def detect_features(frame_list):
                 continue
 
             # Mark face area
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.rectangle(image_dup, (x, y), (x + w, y + h), (0, 255, 0), 2)
             roi_gray = gray[y:y + h, x:x + w]
-            roi_color = image[y:y + h, x:x + w]
+            roi_color = image_dup[y:y + h, x:x + w]
 
             # Find all facial features:
             # features_in_face = [(p0_1d[i], p0_1d[i + 1]) for i in range(0, p0_1d.size, 2) if is_point_in_rect(x, y, w, h, p0_1d[i],p0_1d[i + 1])]
@@ -128,26 +129,26 @@ def detect_features(frame_list):
             #     break
 
             # Plot filtered features on frame
-            # utils.cvshow("goodFeaturesToTrack", q3.mark_points(image, features_in_face))
-            q3.mark_points(image, features_in_face_filtered)
+            # utils.cvshow("goodFeaturesToTrack", q3.mark_points(image_dup, features_in_face))
+            q3.mark_points(image_dup, features_in_face_filtered)
 
             if len(features_in_face_filtered) < 3:
                 # print("Found {0} faces, {1} eyes, {2} nose and {3} mouth in and total of {4} facial features in frame {5}! ".format(len(faces), len(eyes), len(nose), len(mouth), len(features_in_face_filtered), i))
                 print("Found {0} faces, {1} eyes and {2} nose in and total of {3} facial features in frame {4}! ".format(len(faces), len(eyes), len(nose), len(mouth), len(features_in_face_filtered), i))
 
-        # New part - find shoulders
-        upperBodyCascPath = haar_dir + "/haarcascade_upperbody.xml"
-        upperBodyCascade = cv2.CascadeClassifier(upperBodyCascPath)
-        upperBody = upperBodyCascade.detectMultiScale(gray , scaleFactor=1.01) #, minNeighbors=5, minSize=(30, 30))
-        for (bx, by, bw, bh) in upperBody:
-            # Mark body area
-            cv2.rectangle(image, (bx, by), (bx + bw, by + bh), (0, 255, 0), 2)
+        # Shoulders
+        # upperBodyCascPath = haar_dir + "/haarcascade_upperbody.xml"
+        # upperBodyCascade = cv2.CascadeClassifier(upperBodyCascPath)
+        # upperBody = upperBodyCascade.detectMultiScale(gray , scaleFactor=1.01) #, minNeighbors=5, minSize=(30, 30))
+        # for (bx, by, bw, bh) in upperBody:
+        #     # Mark body area
+        #     cv2.rectangle(image_dup, (bx, by), (bx + bw, by + bh), (0, 255, 0), 2)
 
 
 
 
-        cv2.imwrite(haar_dir_results + '/' + str(i) + '.jpg', image)
-        # cv2.imshow("Faces found", image)
+        cv2.imwrite(haar_dir_results + '/' + str(i) + '.jpg', image_dup)
+        # cv2.imshow("Faces found", image_dup)
         # cv2.waitKey()
         frames_features.append(features_in_face_filtered)
 

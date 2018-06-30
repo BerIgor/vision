@@ -170,8 +170,14 @@ def combine_feature_lists(feature_list1, feature_list2):
 
 if __name__ == "__main__":
 
-    full_frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
-    full_frame_mask_list = utils.get_all_frames(utils.get_pwd() + '/our_data/mask.avi')
+    # full_frame_list = utils.get_all_frames(utils.get_pwd() + '/our_data/ariel.avi')
+    # full_frame_mask_list = utils.get_all_frames(utils.get_pwd() + '/our_data/mask.avi')
+    # TODO - return to all frames
+    full_frame_list = utils.get_frames_uniform(utils.get_pwd() + '/our_data/ariel.avi', 10)
+    full_frame_mask_list = utils.get_frames_uniform(utils.get_pwd() + '/our_data/mask.avi', 10)
+    # TODO - save first frame, remove afterwards
+    cv2.imwrite(utils.get_pwd() + '/our_data/frame0.jpg', full_frame_list[0])
+
     texture = cv2.imread(utils.get_pwd() + '/our_data/style.jpg')
     rows, cols, _ = np.shape(full_frame_list[0])
 
@@ -216,6 +222,12 @@ if __name__ == "__main__":
         M = np.hstack((a, b))
         print(M)
         cframe = cartoonify_image(full_frame_list[i])
+        # TODO - Blue-fy image
+        cframe[:, :, 2] = 0
+        # cframe[:, :, 1] = cframe[:, :, 1]*1.3 # Greens decreased by half
+        cframe[:, :, 0] = cframe[:, :, 0]*1.7 # Blues decreased by half
+        cframe[cframe > 255] = 255 # truncate bigger than max values due to multiplication
+
         print(cframe.shape)
         stabilized_frame = cv2.warpAffine(cframe, M, (cols, rows))
 
