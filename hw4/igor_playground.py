@@ -180,7 +180,7 @@ if __name__ == "__main__":
     bg_motion_list = calc_bg_motion_frames(background)
     new_bg_motion_list = list()
     for bg_frame in bg_motion_list:
-        for i in range(25):
+        for i in range(10):
             new_bg_motion_list.append(bg_frame)
 
     bg_motion_list = new_bg_motion_list
@@ -226,8 +226,8 @@ if __name__ == "__main__":
         M_bg[1, 2] = np.array([0])
         M_bg = M_bg / 6
         M_bg[:, 0:2] = np.array([[1, 0], [0, 1]])
-        background_moved = cv2.warpAffine(background_moved, M_bg, (cols, rows))
-        background_moved = background_moved[:rows, :cols, :]
+        background_moved = cv2.warpAffine(background_moved, M_bg, (background_moved.shape[1], background_moved.shape[0]))
+        background_moved = background_moved[:rows, 100:100+cols, :]
 
         # _, mask = cv2.threshold(full_frame_mask_list[i], 127, 1, cv2.THRESH_BINARY)
         stabilized_mask = cv2.warpAffine(full_frame_mask_list[i], M, (cols, rows))
@@ -238,7 +238,6 @@ if __name__ == "__main__":
         bg = np.multiply(mask_inv, background_moved)
 
         new_frame = fg + bg
-        utils.cvshow("T", new_frame)
         # m = np.ones_like(cframe)
         # new_frame = cv2.seamlessClone(fg, bg, stabilized_mask, (240, 360), cv2.NORMAL_CLONE)
 
